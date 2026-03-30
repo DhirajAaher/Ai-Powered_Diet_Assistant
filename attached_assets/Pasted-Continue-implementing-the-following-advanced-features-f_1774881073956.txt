@@ -1,0 +1,98 @@
+Continue implementing the following advanced features for the AI Diet Assistant application.
+
+10. Macro & Micronutrient Breakdown
+Add a detailed nutrition panel that shows:
+- Protein
+- Carbohydrates
+- Fat
+- Fiber
+- Sugar
+- Vitamins (A, B12, C, D)
+- Minerals (Iron, Calcium, Magnesium)
+
+Display with:
+- Progress bars
+- Daily recommended intake comparison
+
+11. AI Personalized Meal Swap
+Allow users to click “Swap Meal”.
+AI should:
+- Replace the selected meal
+- Keep the same calorie target
+- Respect diet preference (veg, vegan, keto, etc.)
+- Update grocery list automatically
+
+12. Smart Intermittent Fasting Mode
+Add a fasting mode where users choose:
+- 16:8
+- 18:6
+- OMAD
+
+Features:
+- Fasting timer
+- Eating window tracker
+- AI meal suggestions for eating window
+
+13. AI Health Risk Detection
+Based on user data and diet logs:
+- Detect patterns like excessive sugar, low protein, low fiber
+- Generate warnings and health suggestions
+- Provide healthy alternatives
+
+14. Barcode Scanner for Packaged Foods
+Allow users to scan food product barcodes using phone camera.
+Fetch nutrition data and automatically log it.
+
+15. AI Weekly Meal Planner Editor
+Allow user to:
+- Drag and drop meals
+- Replace meals
+- Regenerate specific days
+- Lock favorite meals
+
+16. Gamification System
+Add a reward system:
+- Points for logging meals
+- Badges for healthy streaks
+- Levels for consistency
+
+Example achievements:
+- 7 Day Healthy Streak
+- Protein Goal Master
+- Hydration Hero
+
+17. Smart Notifications
+Add reminders for:
+- Meal times
+- Water intake
+- Grocery shopping
+- Weekly progress report
+
+18. Multi-language Support
+Allow the app to support:
+- English
+- Hindi
+- Spanish
+Use a translation system for UI and AI responses.
+
+19. AI Coach Mode
+Add a feature where users can enable a “Daily AI Coach”.
+The AI sends:
+- Daily motivation
+- Diet tips
+- Meal suggestions
+- Progress feedback
+
+20. Performance Optimization
+Ensure:
+- Clean modular code
+- Reusable React components
+- Efficient API calls
+- Error handling
+- Mobile responsiveness
+
+OUTPUT REQUIREMENTS:
+- Show only new code additions or modifications.
+- Explain where each file should be placed.
+- Maintain existing code style.
+- Include comments for each new feature.
