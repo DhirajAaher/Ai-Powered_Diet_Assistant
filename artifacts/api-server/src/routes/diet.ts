@@ -141,4 +141,44 @@ Respond in this EXACT JSON format (no markdown):
   res.json(nutrition);
 });
 
+router.post("/swap-meal", async (req: AuthRequest, res) => {
+  const { planId, day, mealType, dietPreference } = req.body;
+  if (!planId || !day || !mealType) {
+    res.status(400).json({ error: "planId, day, and mealType are required." });
+    return;
+  }
+  const [plan] = await db.select().from(dietPlansTable).where(eq(dietPlansTable.id, parseInt(planId))).limit(1);
+  if (!plan || plan.userId !== req.userId!) {
+    res.status(404).json({ error: "Plan not found" });
+    return;
+  }
+  const days = JSON.parse(plan.planData);
+  const dayData = days.find((d: any) => d.day === day);
+  if (!dayData) { res.status(404).json({ error: "Day not found" }); return; }
+  const currentMeal = dayData[mealType];
+  const prompt = `You are a nutritionist. Replace this meal with a different ${dietPreference?.replace(/_/g, " ") || "balanced"} meal with similar calories (${currentMeal?.calories || 400} kcal). 
+Current meal: ${currentMeal?.name || mealType}.
+Respond ONLY in JSON format (no markdown):
+{ "name": "New Meal Name", "calories": <integer>, "protein": <number>, "carbs": <number>, "fat": <number> }`;
+
+  const completion = await openai.chat.completions.create({
+    model: "gpt-5.2",
+    max_completion_tokens: 256,
+    messages: [{ role: "user", content: prompt }],
+  });
+  try {
+    const newMeal = JSON.parse(completion.choices[0]?.message?.content ?? "{}");
+    const updatedDays = days.map((d: any) => d.day === day ? { ...d, [mealType]: newMeal } : d);
+    const updatedGroceries = JSON.parse(plan.groceryList || "[]");
+    if (newMeal.name) updatedGroceries.push(newMeal.name);
+    const [updated] = await db.update(dietPlansTable).set({
+      planData: JSON.stringify(updatedDays),
+      groceryList: JSON.stringify(updatedGroceries),
+    }).where(eq(dietPlansTable.id, plan.id)).returning();
+    res.json({ meal: newMeal, plan: updated });
+  } catch {
+    res.status(500).json({ error: "Failed to generate meal swap." });
+  }
+});
+
 export default router;

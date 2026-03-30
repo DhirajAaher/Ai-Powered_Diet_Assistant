@@ -4,3 +4,4 @@ export * from "./diet-plans";
 export * from "./tracker";
 export * from "./conversations";
 export * from "./messages";
+export * from "./gamification";
