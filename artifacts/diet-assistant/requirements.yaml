@@ -1,0 +1,17 @@
+packages:
+  "recharts": "For the weight trend line chart and dashboard data visualization"
+  "date-fns": "For easy date formatting and manipulation in logs and plans"
+  "framer-motion": "For smooth page transitions and beautiful card entry animations"
+
+images:
+  - path: "artifacts/diet-assistant/public/images/auth-bg.png"
+    description: "Abstract, clean, modern wellness background with soft fresh green and white flowing gradients, very minimal and professional"
+    aspect_ratio: "16:9"
+  - path: "artifacts/diet-assistant/public/images/hero-health.png"
+    description: "3d abstract illustration of healthy food items like an avocado and a water droplet floating elegantly in a bright studio environment, clean white background"
+    aspect_ratio: "1:1"
+
+notes:
+  - Auth token is stored in localStorage as 'diet_token' and passed in the Authorization header.
+  - Orval generated API hooks are imported from @workspace/api-client-react.
+  - The chat stream uses standard fetch to handle SSE events for OpenAI.

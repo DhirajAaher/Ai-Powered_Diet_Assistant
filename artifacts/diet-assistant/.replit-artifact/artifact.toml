@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "AI Diet Assistant"
+version = "1.0.0"
+id = "artifacts/diet-assistant"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25123
+
+[services.development]
+run = "pnpm --filter @workspace/diet-assistant run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/diet-assistant", "run", "build" ]
+publicDir = "artifacts/diet-assistant/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25123"
+BASE_PATH = "/"

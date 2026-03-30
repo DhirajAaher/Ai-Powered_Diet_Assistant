@@ -1,15 +1,24 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: AI Diet Assistant API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: profile
+    description: User profile operations
+  - name: diet
+    description: Diet plan and food operations
+  - name: tracker
+    description: Daily meal and water tracking
+  - name: openai
+    description: OpenAI AI chat operations
 paths:
   /healthz:
     get:
@@ -24,6 +33,436 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: registerUser
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterBody"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Email already in use
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: loginUser
+      tags: [auth]
+      summary: Login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logoutUser
+      tags: [auth]
+      summary: Logout current user
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current logged in user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /profile:
+    get:
+      operationId: getProfile
+      tags: [profile]
+      summary: Get user profile
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "404":
+          description: Profile not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: createOrUpdateProfile
+      tags: [profile]
+      summary: Create or update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserProfileBody"
+      responses:
+        "200":
+          description: Profile saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+
+  /diet/generate-plan:
+    post:
+      operationId: generateDietPlan
+      tags: [diet]
+      summary: Generate a 7-day AI diet plan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GeneratePlanBody"
+      responses:
+        "200":
+          description: Generated diet plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DietPlan"
+
+  /diet/plans:
+    get:
+      operationId: listDietPlans
+      tags: [diet]
+      summary: List all saved diet plans for the user
+      responses:
+        "200":
+          description: List of diet plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DietPlanSummary"
+
+  /diet/plans/{id}:
+    get:
+      operationId: getDietPlan
+      tags: [diet]
+      summary: Get a specific diet plan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Diet plan detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DietPlan"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /diet/check-food:
+    post:
+      operationId: checkFoodCalories
+      tags: [diet]
+      summary: Check calories and nutrition for a food item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckFoodBody"
+      responses:
+        "200":
+          description: Nutritional info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FoodNutrition"
+
+  /tracker/today:
+    get:
+      operationId: getTodayLog
+      tags: [tracker]
+      summary: Get today's tracking log for the current user
+      responses:
+        "200":
+          description: Today's log
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailyLog"
+
+  /tracker/log-meal:
+    post:
+      operationId: logMeal
+      tags: [tracker]
+      summary: Log a meal entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LogMealBody"
+      responses:
+        "201":
+          description: Meal logged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MealEntry"
+
+  /tracker/log-water:
+    post:
+      operationId: logWater
+      tags: [tracker]
+      summary: Log water intake
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LogWaterBody"
+      responses:
+        "200":
+          description: Water logged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WaterEntry"
+
+  /tracker/meals:
+    get:
+      operationId: listMealLogs
+      tags: [tracker]
+      summary: List meal logs for a date range
+      parameters:
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Meal logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MealEntry"
+
+  /tracker/weight:
+    post:
+      operationId: logWeight
+      tags: [tracker]
+      summary: Log a weight entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LogWeightBody"
+      responses:
+        "201":
+          description: Weight logged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WeightEntry"
+    get:
+      operationId: listWeightLogs
+      tags: [tracker]
+      summary: List weight logs
+      responses:
+        "200":
+          description: Weight log history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WeightEntry"
+
+  /openai/conversations:
+    get:
+      operationId: listOpenaiConversations
+      tags: [openai]
+      summary: List all conversations
+      responses:
+        "200":
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OpenaiConversation"
+    post:
+      operationId: createOpenaiConversation
+      tags: [openai]
+      summary: Create a new conversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOpenaiConversationBody"
+      responses:
+        "201":
+          description: Created conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiConversation"
+
+  /openai/conversations/{id}:
+    get:
+      operationId: getOpenaiConversation
+      tags: [openai]
+      summary: Get conversation with messages
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Conversation with messages
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiConversationWithMessages"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiError"
+    delete:
+      operationId: deleteOpenaiConversation
+      tags: [openai]
+      summary: Delete a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiError"
+
+  /openai/conversations/{id}/messages:
+    get:
+      operationId: listOpenaiMessages
+      tags: [openai]
+      summary: List messages in a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OpenaiMessage"
+    post:
+      operationId: sendOpenaiMessage
+      tags: [openai]
+      summary: Send a text message and receive a streaming text response
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendOpenaiMessageBody"
+      responses:
+        "200":
+          description: SSE stream of assistant text chunks
+          content:
+            text/event-stream: {}
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +473,509 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    SuccessResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        name:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - email
+        - name
+        - createdAt
+
+    RegisterBody:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+        name:
+          type: string
+      required:
+        - email
+        - password
+        - name
+
+    LoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        token:
+          type: string
+      required:
+        - user
+        - token
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        age:
+          type: integer
+        gender:
+          type: string
+          enum: [male, female, other]
+        heightCm:
+          type: number
+        weightKg:
+          type: number
+        activityLevel:
+          type: string
+          enum: [sedentary, lightly_active, moderately_active, very_active, extra_active]
+        dietPreference:
+          type: string
+          enum: [vegetarian, vegan, non_vegetarian, keto, paleo, mediterranean, gluten_free]
+        goal:
+          type: string
+          enum: [weight_loss, muscle_gain, maintenance, improve_health]
+        dailyCalorieTarget:
+          type: integer
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - age
+        - gender
+        - heightCm
+        - weightKg
+        - activityLevel
+        - dietPreference
+        - goal
+
+    UserProfileBody:
+      type: object
+      properties:
+        age:
+          type: integer
+          minimum: 1
+          maximum: 120
+        gender:
+          type: string
+          enum: [male, female, other]
+        heightCm:
+          type: number
+          minimum: 50
+          maximum: 300
+        weightKg:
+          type: number
+          minimum: 10
+          maximum: 500
+        activityLevel:
+          type: string
+          enum: [sedentary, lightly_active, moderately_active, very_active, extra_active]
+        dietPreference:
+          type: string
+          enum: [vegetarian, vegan, non_vegetarian, keto, paleo, mediterranean, gluten_free]
+        goal:
+          type: string
+          enum: [weight_loss, muscle_gain, maintenance, improve_health]
+      required:
+        - age
+        - gender
+        - heightCm
+        - weightKg
+        - activityLevel
+        - dietPreference
+        - goal
+
+    GeneratePlanBody:
+      type: object
+      properties:
+        profileId:
+          type: integer
+      required:
+        - profileId
+
+    DietPlan:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        title:
+          type: string
+        dailyCalories:
+          type: integer
+        proteinGrams:
+          type: integer
+        carbsGrams:
+          type: integer
+        fatGrams:
+          type: integer
+        planData:
+          type: string
+          description: JSON stringified 7-day meal plan
+        groceryList:
+          type: string
+          description: JSON stringified grocery list
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - title
+        - dailyCalories
+        - proteinGrams
+        - carbsGrams
+        - fatGrams
+        - planData
+        - createdAt
+
+    DietPlanSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        dailyCalories:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - dailyCalories
+        - createdAt
+
+    CheckFoodBody:
+      type: object
+      properties:
+        foodName:
+          type: string
+        portionSize:
+          type: string
+      required:
+        - foodName
+        - portionSize
+
+    FoodNutrition:
+      type: object
+      properties:
+        foodName:
+          type: string
+        portionSize:
+          type: string
+        calories:
+          type: integer
+        proteinGrams:
+          type: number
+        carbsGrams:
+          type: number
+        fatGrams:
+          type: number
+        fiberGrams:
+          type: number
+        healthScore:
+          type: integer
+          description: 1-10 health score
+        alternatives:
+          type: array
+          items:
+            type: string
+        tips:
+          type: string
+      required:
+        - foodName
+        - portionSize
+        - calories
+        - proteinGrams
+        - carbsGrams
+        - fatGrams
+        - fiberGrams
+        - healthScore
+        - alternatives
+        - tips
+
+    LogMealBody:
+      type: object
+      properties:
+        mealType:
+          type: string
+          enum: [breakfast, lunch, dinner, snack]
+        foodName:
+          type: string
+        portionSize:
+          type: string
+        calories:
+          type: integer
+        proteinGrams:
+          type: number
+        carbsGrams:
+          type: number
+        fatGrams:
+          type: number
+        loggedAt:
+          type: string
+          format: date
+      required:
+        - mealType
+        - foodName
+        - portionSize
+        - calories
+
+    MealEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        mealType:
+          type: string
+        foodName:
+          type: string
+        portionSize:
+          type: string
+        calories:
+          type: integer
+        proteinGrams:
+          type: number
+        carbsGrams:
+          type: number
+        fatGrams:
+          type: number
+        loggedAt:
+          type: string
+          format: date
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - mealType
+        - foodName
+        - portionSize
+        - calories
+        - loggedAt
+        - createdAt
+
+    LogWaterBody:
+      type: object
+      properties:
+        amountMl:
+          type: integer
+        loggedAt:
+          type: string
+          format: date
+      required:
+        - amountMl
+
+    WaterEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        amountMl:
+          type: integer
+        loggedAt:
+          type: string
+          format: date
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - amountMl
+        - loggedAt
+        - createdAt
+
+    LogWeightBody:
+      type: object
+      properties:
+        weightKg:
+          type: number
+        loggedAt:
+          type: string
+          format: date
+      required:
+        - weightKg
+
+    WeightEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        weightKg:
+          type: number
+        loggedAt:
+          type: string
+          format: date
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - weightKg
+        - loggedAt
+        - createdAt
+
+    DailyLog:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        totalCalories:
+          type: integer
+        totalProteinGrams:
+          type: number
+        totalCarbsGrams:
+          type: number
+        totalFatGrams:
+          type: number
+        totalWaterMl:
+          type: integer
+        meals:
+          type: array
+          items:
+            $ref: "#/components/schemas/MealEntry"
+        calorieTarget:
+          type: integer
+        waterTarget:
+          type: integer
+      required:
+        - date
+        - totalCalories
+        - totalProteinGrams
+        - totalCarbsGrams
+        - totalFatGrams
+        - totalWaterMl
+        - meals
+        - calorieTarget
+        - waterTarget
+
+    OpenaiConversation:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - createdAt
+
+    OpenaiMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        conversationId:
+          type: integer
+        role:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - conversationId
+        - role
+        - content
+        - createdAt
+
+    CreateOpenaiConversationBody:
+      type: object
+      properties:
+        title:
+          type: string
+      required:
+        - title
+
+    SendOpenaiMessageBody:
+      type: object
+      properties:
+        content:
+          type: string
+      required:
+        - content
+
+    OpenaiConversationWithMessages:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/OpenaiMessage"
+      required:
+        - id
+        - title
+        - createdAt
+        - messages
+
+    OpenaiError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
