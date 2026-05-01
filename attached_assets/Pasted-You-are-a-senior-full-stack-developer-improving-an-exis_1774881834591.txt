@@ -1,0 +1,175 @@
+You are a senior full-stack developer improving an existing AI-powered Diet Assistant web application.
+
+Current stack:
+Frontend: React + Tailwind CSS
+Backend: Node.js + Express
+Database: SQLite
+AI: OpenAI API
+
+Do NOT rebuild the project. Extend it with a new feature called:
+
+AI Nutritionist Avatar
+
+The AI avatar should act like a virtual dietitian that can speak, listen, and answer nutrition questions.
+
+FEATURE GOAL
+Users can talk to an animated nutritionist avatar that gives diet advice, meal suggestions, calorie guidance, and motivational coaching.
+
+--------------------------------------
+
+FEATURES TO IMPLEMENT
+
+1. Animated AI Avatar Interface
+
+Create a component:
+
+/components/NutritionistAvatar.jsx
+
+UI requirements:
+- Show a 3D or animated avatar
+- Avatar should appear as a friendly nutrition coach
+- Display speaking animation when AI responds
+- Include microphone button to talk
+
+Layout:
+- Avatar at top
+- Chat transcript below
+- Voice input button
+
+--------------------------------------
+
+2. Voice Input (Speech to Text)
+
+Allow users to ask questions by speaking.
+
+Example questions:
+- "What should I eat for breakfast?"
+- "How many calories are in rice?"
+- "Suggest a high protein dinner."
+
+Use browser Web Speech API.
+
+Steps:
+- Capture microphone input
+- Convert speech to text
+- Send text to backend AI endpoint
+
+--------------------------------------
+
+3. AI Nutrition Chat Engine
+
+Create API route:
+
+POST /api/ai-nutritionist
+
+Backend tasks:
+- Receive user question
+- Send to OpenAI API
+- Use system prompt to make AI behave like a certified nutritionist
+
+System prompt example:
+
+"You are a professional nutritionist and diet coach. Give healthy, safe, practical diet advice. Keep answers simple and motivational."
+
+Return response text.
+
+--------------------------------------
+
+4. Voice Response (Text to Speech)
+
+Convert AI response into voice.
+
+Use:
+
+Browser SpeechSynthesis API.
+
+Steps:
+- Receive AI response
+- Convert text to voice
+- Play audio while avatar animates
+
+--------------------------------------
+
+5. Smart Diet Context
+
+Send user profile data to AI so responses are personalized:
+
+Include:
+- age
+- weight
+- height
+- goal (fat loss / muscle gain)
+- diet type
+
+Example:
+
+User: "Suggest lunch"
+
+AI response:
+"Lunch suggestion for your weight loss goal: grilled chicken salad with quinoa."
+
+--------------------------------------
+
+6. Conversation Memory
+
+Store last 10 messages in state so AI keeps conversation context.
+
+--------------------------------------
+
+7. Avatar Animations
+
+Add states:
+
+Idle
+Listening
+Thinking
+Speaking
+
+When user talks → listening animation  
+When AI generating response → thinking  
+When AI voice plays → speaking  
+
+--------------------------------------
+
+8. Quick Suggestion Buttons
+
+Below avatar add quick prompts:
+
+"Suggest healthy breakfast"
+"Low calorie snacks"
+"High protein meals"
+"Meal for weight loss"
+
+--------------------------------------
+
+9. Mobile Friendly UI
+
+Ensure:
+- avatar scales on mobile
+- microphone button large enough
+- smooth animations
+
+--------------------------------------
+
+10. Folder Structure
+
+Add:
+
+/components/NutritionistAvatar.jsx
+/services/aiNutritionService.js
+/routes/nutritionist.js
+
+--------------------------------------
+
+11. Output Required
+
+Provide:
+
+- React component code
+- Backend Express route
+- AI prompt configuration
+- Speech-to-text implementation
+- Text-to-speech implementation
+- Avatar UI example
+
+Add clear comments in the code.
