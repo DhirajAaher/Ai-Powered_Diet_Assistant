@@ -145,6 +145,22 @@
 }
 ::-webkit-scrollbar-thumb:hover { @apply bg-muted-foreground/45; }
 
+/* ─── Hide Clerk "Development mode" badge ────────────────── */
+.cl-badge,
+[data-localization-key="badge__dev"],
+[data-localization-key*="badge"],
+.cl-internal-b3fm6y,
+[class*="cl-badge"],
+[class*="Badge"],
+.cl-devModeNotice {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
 /* ─── Utility classes ────────────────────────────────────── */
 .glass-card {
   @apply bg-card/70 backdrop-blur-2xl border border-white/15 shadow-xl shadow-black/8;
