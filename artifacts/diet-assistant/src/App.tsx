@@ -180,7 +180,7 @@ function FloatingItem({ emoji, delay, x, y }: { emoji: string; delay: number; x:
 
 function AuthHeroPanel({ mode }: { mode: "signin" | "signup" }) {
   return (
-    <div className="hidden lg:flex flex-col justify-between p-10 xl:p-14 relative overflow-hidden h-full">
+    <div className="flex flex-col justify-between p-10 xl:p-14 relative overflow-hidden h-full">
       {/* Animated gradient bg */}
       <div className="absolute inset-0 bg-gradient-to-br from-green-600 via-emerald-500 to-teal-500" />
       <div className="absolute inset-0 opacity-20"
@@ -276,12 +276,12 @@ function AuthPageLayout({ children, mode }: { children: React.ReactNode; mode: "
       "min-h-[100dvh] flex items-stretch transition-colors duration-300",
       isDark ? "bg-slate-950" : "bg-slate-50"
     )}>
-      {/* Left hero panel */}
-      <div className="w-[45%] flex-shrink-0 min-h-[100dvh]">
+      {/* Left hero panel — only visible on large screens */}
+      <div className="hidden lg:block lg:w-[45%] flex-shrink-0 min-h-[100dvh]">
         <AuthHeroPanel mode={mode} />
       </div>
 
-      {/* Right form panel */}
+      {/* Right form panel — full width on small screens */}
       <div className={cn(
         "flex-1 flex flex-col items-center justify-center p-6 lg:p-12 min-h-[100dvh] relative",
         isDark ? "bg-slate-950" : "bg-white"
