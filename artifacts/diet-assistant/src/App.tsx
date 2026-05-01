@@ -6,6 +6,8 @@ import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider, useTheme } from "@/lib/theme";
+import { cn } from "@/lib/utils";
 import "@/lib/i18n";
 
 import { Layout } from "@/components/Layout";
@@ -36,56 +38,95 @@ function stripBase(path: string): string {
   return basePath && path.startsWith(basePath) ? path.slice(basePath.length) || "/" : path;
 }
 
-const clerkAppearance = {
-  theme: shadcn,
-  cssLayerName: "clerk",
-  options: {
-    logoPlacement: "inside" as const,
-    logoLinkUrl: basePath || "/",
-    logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
-    socialButtonsPlacement: "top" as const,
-    socialButtonsVariant: "blockButton" as const,
-  },
-  variables: {
-    colorPrimary: "#22c55e",
-    colorForeground: "#0f172a",
-    colorMutedForeground: "#64748b",
-    colorDanger: "#ef4444",
-    colorBackground: "#ffffff",
-    colorInput: "#f8fafc",
-    colorInputForeground: "#0f172a",
-    colorNeutral: "#e2e8f0",
-    fontFamily: "'Inter', sans-serif",
-    borderRadius: "0.75rem",
-  },
-  elements: {
-    rootBox: "w-full flex justify-center",
-    cardBox: "bg-white rounded-2xl w-[440px] max-w-full overflow-hidden shadow-2xl shadow-black/10",
-    card: "!shadow-none !border-0 !bg-transparent !rounded-none",
-    footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
-    headerTitle: "text-slate-900 font-bold text-2xl",
-    headerSubtitle: "text-slate-500",
-    socialButtonsBlockButtonText: "text-slate-700 font-medium",
-    formFieldLabel: "text-slate-700 font-medium text-sm",
-    footerActionLink: "text-green-600 hover:text-green-700 font-medium",
-    footerActionText: "text-slate-500",
-    dividerText: "text-slate-400 text-sm",
-    identityPreviewEditButton: "text-green-600",
-    formFieldSuccessText: "text-green-600",
-    alertText: "text-slate-700",
-    logoBox: "mb-1",
-    logoImage: "h-12 w-12",
-    socialButtonsBlockButton: "border-slate-200 hover:bg-slate-50 transition-colors",
-    formButtonPrimary: "bg-green-500 hover:bg-green-600 text-white font-semibold transition-colors",
-    formFieldInput: "border-slate-200 bg-slate-50 text-slate-900 focus:ring-green-500",
-    footerAction: "pb-2",
-    dividerLine: "bg-slate-200",
-    alert: "border-red-200 bg-red-50",
-    otpCodeFieldInput: "border-slate-200",
-    formFieldRow: "gap-3",
-    main: "gap-5",
-  },
-};
+function buildClerkAppearance(dark: boolean) {
+  return {
+    theme: shadcn,
+    cssLayerName: "clerk",
+    options: {
+      logoPlacement: "inside" as const,
+      logoLinkUrl: basePath || "/",
+      logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
+      socialButtonsPlacement: "top" as const,
+      socialButtonsVariant: "blockButton" as const,
+    },
+    variables: dark ? {
+      colorPrimary: "#22c55e",
+      colorForeground: "#e2e8f0",
+      colorMutedForeground: "#94a3b8",
+      colorDanger: "#f87171",
+      colorBackground: "#0f1a12",
+      colorInput: "#1a2e1e",
+      colorInputForeground: "#e2e8f0",
+      colorNeutral: "#334155",
+      fontFamily: "'Inter', sans-serif",
+      borderRadius: "0.75rem",
+    } : {
+      colorPrimary: "#22c55e",
+      colorForeground: "#0f172a",
+      colorMutedForeground: "#64748b",
+      colorDanger: "#ef4444",
+      colorBackground: "#ffffff",
+      colorInput: "#f8fafc",
+      colorInputForeground: "#0f172a",
+      colorNeutral: "#e2e8f0",
+      fontFamily: "'Inter', sans-serif",
+      borderRadius: "0.75rem",
+    },
+    elements: dark ? {
+      rootBox: "w-full flex justify-center",
+      cardBox: "rounded-2xl w-[440px] max-w-full overflow-hidden shadow-2xl shadow-black/40",
+      card: "!shadow-none !border-0 !bg-transparent !rounded-none",
+      footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
+      headerTitle: "text-slate-100 font-bold text-2xl",
+      headerSubtitle: "text-slate-400",
+      socialButtonsBlockButtonText: "text-slate-200 font-medium",
+      formFieldLabel: "text-slate-300 font-medium text-sm",
+      footerActionLink: "text-green-400 hover:text-green-300 font-medium",
+      footerActionText: "text-slate-400",
+      dividerText: "text-slate-500 text-sm",
+      identityPreviewEditButton: "text-green-400",
+      formFieldSuccessText: "text-green-400",
+      alertText: "text-slate-300",
+      logoBox: "mb-1",
+      logoImage: "h-12 w-12",
+      socialButtonsBlockButton: "border-slate-700 hover:bg-slate-800 transition-colors",
+      formButtonPrimary: "bg-green-500 hover:bg-green-600 text-white font-semibold transition-colors",
+      formFieldInput: "border-slate-700 bg-slate-800 text-slate-100 focus:ring-green-500",
+      footerAction: "pb-2",
+      dividerLine: "bg-slate-700",
+      alert: "border-red-900 bg-red-950",
+      otpCodeFieldInput: "border-slate-700",
+      formFieldRow: "gap-3",
+      main: "gap-5",
+    } : {
+      rootBox: "w-full flex justify-center",
+      cardBox: "bg-white rounded-2xl w-[440px] max-w-full overflow-hidden shadow-2xl shadow-black/10",
+      card: "!shadow-none !border-0 !bg-transparent !rounded-none",
+      footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
+      headerTitle: "text-slate-900 font-bold text-2xl",
+      headerSubtitle: "text-slate-500",
+      socialButtonsBlockButtonText: "text-slate-700 font-medium",
+      formFieldLabel: "text-slate-700 font-medium text-sm",
+      footerActionLink: "text-green-600 hover:text-green-700 font-medium",
+      footerActionText: "text-slate-500",
+      dividerText: "text-slate-400 text-sm",
+      identityPreviewEditButton: "text-green-600",
+      formFieldSuccessText: "text-green-600",
+      alertText: "text-slate-700",
+      logoBox: "mb-1",
+      logoImage: "h-12 w-12",
+      socialButtonsBlockButton: "border-slate-200 hover:bg-slate-50 transition-colors",
+      formButtonPrimary: "bg-green-500 hover:bg-green-600 text-white font-semibold transition-colors",
+      formFieldInput: "border-slate-200 bg-slate-50 text-slate-900 focus:ring-green-500",
+      footerAction: "pb-2",
+      dividerLine: "bg-slate-200",
+      alert: "border-red-200 bg-red-50",
+      otpCodeFieldInput: "border-slate-200",
+      formFieldRow: "gap-3",
+      main: "gap-5",
+    },
+  };
+}
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
@@ -106,19 +147,38 @@ function ClerkQueryClientCacheInvalidator() {
   return null;
 }
 
+function AuthPageWrapper({ children }: { children: React.ReactNode }) {
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
+  return (
+    <div className={cn(
+      "flex min-h-[100dvh] items-center justify-center px-4 transition-colors duration-300",
+      isDark
+        ? "bg-gradient-to-br from-green-950 via-slate-900 to-emerald-950"
+        : "bg-gradient-to-br from-green-50 via-white to-emerald-50"
+    )}>
+      {/* Subtle pattern overlay */}
+      <div className="absolute inset-0 opacity-30 pointer-events-none" style={{
+        backgroundImage: `radial-gradient(circle at 20% 20%, ${isDark ? '#16a34a33' : '#22c55e22'} 0%, transparent 50%), radial-gradient(circle at 80% 80%, ${isDark ? '#0d946633' : '#10b98122'} 0%, transparent 50%)`
+      }} />
+      <div className="relative z-10 w-full flex justify-center">{children}</div>
+    </div>
+  );
+}
+
 function SignInPage() {
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-gradient-to-br from-green-50 via-white to-emerald-50 px-4">
+    <AuthPageWrapper>
       <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
-    </div>
+    </AuthPageWrapper>
   );
 }
 
 function SignUpPage() {
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-gradient-to-br from-green-50 via-white to-emerald-50 px-4">
+    <AuthPageWrapper>
       <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
-    </div>
+    </AuthPageWrapper>
   );
 }
 
@@ -213,11 +273,13 @@ function AppRoutes() {
 
 function ClerkProviderWithRoutes() {
   const [, setLocation] = useLocation();
+  const { resolvedTheme } = useTheme();
+  const appearance = buildClerkAppearance(resolvedTheme === "dark");
   return (
     <ClerkProvider
       publishableKey={clerkPubKey!}
       proxyUrl={clerkProxyUrl}
-      appearance={clerkAppearance}
+      appearance={appearance}
       signInUrl={`${basePath}/sign-in`}
       signUpUrl={`${basePath}/sign-up`}
       localization={{
@@ -240,9 +302,11 @@ function ClerkProviderWithRoutes() {
 
 function App() {
   return (
-    <WouterRouter base={basePath}>
-      <ClerkProviderWithRoutes />
-    </WouterRouter>
+    <ThemeProvider>
+      <WouterRouter base={basePath}>
+        <ClerkProviderWithRoutes />
+      </WouterRouter>
+    </ThemeProvider>
   );
 }
 

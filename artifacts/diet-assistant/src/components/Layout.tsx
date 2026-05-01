@@ -6,12 +6,13 @@ import {
   LayoutDashboard, UserCircle, Utensils,
   Search, Target, MessageSquare, LogOut,
   Menu, X, Leaf, Timer, Trophy, Calculator,
-  Mic, Shield, Globe
+  Mic, Shield, Globe, Sun, Moon
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 import i18n from "@/lib/i18n";
+import { useTheme } from "@/lib/theme";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "nav.dashboard", icon: LayoutDashboard },
@@ -38,6 +39,8 @@ export function Layout({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
   const { signOut } = useClerk();
   const { user } = useUser();
+  const { resolvedTheme, toggleTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState(localStorage.getItem("nutriai_lang") || "en");
 
@@ -58,9 +61,18 @@ export function Layout({ children }: { children: ReactNode }) {
         <div className="flex items-center gap-2 text-primary font-display font-bold text-xl">
           <Leaf className="w-6 h-6" /> NutriAI
         </div>
-        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 -mr-2 text-foreground">
-          {isMobileMenuOpen ? <X /> : <Menu />}
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={toggleTheme}
+            title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+            className="p-2 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+          >
+            {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
+          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 -mr-2 text-foreground">
+            {isMobileMenuOpen ? <X /> : <Menu />}
+          </button>
+        </div>
       </div>
 
       {/* Sidebar */}
@@ -120,10 +132,10 @@ export function Layout({ children }: { children: ReactNode }) {
               })}
             </nav>
 
-            {/* Language + Sign out */}
+            {/* Language + Theme + Sign out */}
             <div className="p-4 border-t space-y-2">
-              <div className="flex items-center gap-1.5">
-                <Globe className="w-4 h-4 text-muted-foreground" />
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <Globe className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 {LANGS.map(lang => (
                   <button
                     key={lang.code}
@@ -134,6 +146,22 @@ export function Layout({ children }: { children: ReactNode }) {
                     {lang.label}
                   </button>
                 ))}
+
+                {/* Dark/Light toggle */}
+                <button
+                  onClick={toggleTheme}
+                  title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+                  className="ml-auto p-1.5 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                >
+                  <motion.div
+                    key={isDark ? "moon" : "sun"}
+                    initial={{ rotate: -30, opacity: 0, scale: 0.7 }}
+                    animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.25 }}
+                  >
+                    {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                  </motion.div>
+                </button>
               </div>
               <Button
                 variant="ghost"
