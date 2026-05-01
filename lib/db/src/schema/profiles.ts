@@ -14,6 +14,7 @@ export const profilesTable = pgTable("profiles", {
   dietPreference: text("diet_preference").notNull(),
   goal: text("goal").notNull(),
   dailyCalorieTarget: integer("daily_calorie_target"),
+  healthConditions: text("health_conditions").default("[]"),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 

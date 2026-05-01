@@ -141,6 +141,33 @@ Respond in this EXACT JSON format (no markdown):
   res.json(nutrition);
 });
 
+router.post("/disease-plan", async (req: AuthRequest, res) => {
+  const { conditionNames, dietPreference, goal } = req.body;
+  if (!conditionNames?.length) { res.status(400).json({ error: "Select at least one condition." }); return; }
+  const prompt = `You are a medical nutritionist specializing in therapeutic diets. Create a comprehensive diet plan for someone with: ${conditionNames.join(", ")}.
+Diet preference: ${dietPreference?.replace(/_/g, " ") || "balanced"}. Goal: ${goal?.replace(/_/g, " ") || "improve health"}.
+Respond ONLY in this JSON format (no markdown):
+{
+  "condition": "${conditionNames.join(" + ")}",
+  "foods_to_eat": ["food 1 - reason", "food 2 - reason", "food 3 - reason", "food 4 - reason", "food 5 - reason", "food 6 - reason"],
+  "foods_to_avoid": ["food 1 - reason", "food 2 - reason", "food 3 - reason", "food 4 - reason", "food 5 - reason"],
+  "key_nutrients": ["Nutrient 1", "Nutrient 2", "Nutrient 3", "Nutrient 4", "Nutrient 5"],
+  "meal_timing": ["Tip 1", "Tip 2", "Tip 3", "Tip 4"],
+  "sample_day": {
+    "breakfast": "Detailed breakfast description",
+    "lunch": "Detailed lunch description",
+    "dinner": "Detailed dinner description",
+    "snacks": ["Snack 1", "Snack 2"]
+  },
+  "tips": ["Specific tip 1", "Specific tip 2", "Specific tip 3", "Specific tip 4"]
+}`;
+  const completion = await openai.chat.completions.create({ model: "gpt-5.2", max_completion_tokens: 2048, messages: [{ role: "user", content: prompt }] });
+  try {
+    const result = JSON.parse(completion.choices[0]?.message?.content ?? "{}");
+    res.json(result);
+  } catch { res.status(500).json({ error: "Failed to generate disease diet plan." }); }
+});
+
 router.post("/swap-meal", async (req: AuthRequest, res) => {
   const { planId, day, mealType, dietPreference } = req.body;
   if (!planId || !day || !mealType) {

@@ -5,6 +5,7 @@ const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 async function req<T>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     ...options,
+    credentials: "include",
     headers: { "Content-Type": "application/json", ...getAuthHeaders(), ...(options.headers ?? {}) },
   });
   const data = await res.json();
