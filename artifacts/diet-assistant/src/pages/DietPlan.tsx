@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useGetProfile, useListDietPlans, useGenerateDietPlan } from "@workspace/api-client-react";
+import { useState, useEffect } from "react";
+import { useGetProfile, useListDietPlans, useGenerateDietPlan, useGetDietPlan } from "@workspace/api-client-react";
 import { getAuthHeaders } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,13 +34,22 @@ export default function DietPlan() {
     });
   };
 
-  const activePlan = plans?.find(p => p.id === activePlanId) || (plans && plans.length > 0 ? plans[0] : null);
+  const planArray = Array.isArray(plans) ? plans : [];
+  // Auto-select first plan if none selected
+  const selectedId = activePlanId || (planArray.length > 0 ? planArray[0].id : 0);
+  const activePlan = planArray.find(p => p.id === selectedId) || (planArray.length > 0 ? planArray[0] : null);
+
+  // Fetch full plan details (including planData) for the selected plan
+  const { data: fullPlan, isLoading: loadingFullPlan } = useGetDietPlan(
+    selectedId,
+    { ...headers, query: { enabled: !!selectedId } }
+  );
   
-  // Safely parse the planData string if it exists
+  // Parse planData from the full plan details
   let parsedPlanData: any = null;
-  if (activePlan && (activePlan as any).planData) {
+  if (fullPlan && (fullPlan as any).planData) {
     try {
-      parsedPlanData = JSON.parse((activePlan as any).planData);
+      parsedPlanData = JSON.parse((fullPlan as any).planData);
     } catch(e) { console.error("Failed to parse plan data"); }
   }
 
@@ -144,7 +153,14 @@ export default function DietPlan() {
                     </h3>
                     
                     <div className="space-y-6">
-                      {parsedPlanData[selectedDay] ? Object.entries(parsedPlanData[selectedDay]).map(([mealType, details]: [string, any]) => (
+                      {(() => {
+                        // planData is an array of day objects: [{day: "Monday", breakfast: {...}, ...}]
+                        const dayData = Array.isArray(parsedPlanData)
+                          ? parsedPlanData.find((d: any) => d.day === selectedDay)
+                          : parsedPlanData[selectedDay];
+                        if (!dayData) return <p className="text-muted-foreground">No specific meals defined for this format.</p>;
+                        const mealEntries = Object.entries(dayData).filter(([key]) => !["day", "totalCalories"].includes(key));
+                        return mealEntries.map(([mealType, details]: [string, any]) => (
                         <motion.div 
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
@@ -154,22 +170,41 @@ export default function DietPlan() {
                           <div className="absolute left-[-5px] top-2 w-3 h-3 rounded-full bg-primary ring-4 ring-background" />
                           <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-1">{mealType}</h4>
                           <div className="bg-secondary/30 rounded-xl p-4 border border-border/50">
-                            <p className="font-medium text-lg leading-snug">{typeof details === 'string' ? details : details.name || JSON.stringify(details)}</p>
-                            {typeof details !== 'string' && details.calories && (
-                              <p className="text-sm text-primary mt-2 font-semibold">~{details.calories} kcal</p>
+                            {Array.isArray(details) ? details.map((item: any, idx: number) => (
+                              <div key={idx} className={idx > 0 ? "mt-2 pt-2 border-t border-border/30" : ""}>
+                                <p className="font-medium text-lg leading-snug">{typeof item === 'string' ? item : item.name || JSON.stringify(item)}</p>
+                                {typeof item !== 'string' && item.calories && (
+                                  <p className="text-sm text-primary mt-1 font-semibold">~{item.calories} kcal</p>
+                                )}
+                              </div>
+                            )) : (
+                              <>
+                                <p className="font-medium text-lg leading-snug">{typeof details === 'string' ? details : details.name || JSON.stringify(details)}</p>
+                                {typeof details !== 'string' && details.calories && (
+                                  <p className="text-sm text-primary mt-2 font-semibold">~{details.calories} kcal</p>
+                                )}
+                              </>
                             )}
                           </div>
                         </motion.div>
-                      )) : (
-                        <p className="text-muted-foreground">No specific meals defined for this format.</p>
-                      )}
+                        ));
+                      })()}
                     </div>
                   </div>
                 </div>
               ) : (
                 <div className="p-8 text-center text-muted-foreground">
-                  <FileText className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                  <p>Plan data format is unsupported or loading.</p>
+                  {loadingFullPlan ? (
+                    <>
+                      <div className="animate-spin w-12 h-12 mx-auto mb-4 border-4 border-primary/20 border-t-primary rounded-full" />
+                      <p>Loading plan details...</p>
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                      <p>Plan data format is unsupported or loading.</p>
+                    </>
+                  )}
                 </div>
               )}
             </Card>

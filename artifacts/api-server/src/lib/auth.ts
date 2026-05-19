@@ -26,6 +26,7 @@ export async function requireAuth(req: AuthRequest, res: Response, next: NextFun
   // 1. Try Clerk session auth first (cookie-based from browser)
   try {
     const auth = getAuth(req);
+    console.log("[AUTH] Clerk getAuth result:", { userId: auth?.userId, sessionId: auth?.sessionId });
     if (auth?.userId) {
       const clerkId = auth.userId;
       // Look up or create internal user
@@ -36,16 +37,19 @@ export async function requireAuth(req: AuthRequest, res: Response, next: NextFun
         const name = "NutriAI User";
         const existing = await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
         if (existing.length > 0) {
-          [user] = await db.update(usersTable).set({ clerkId }).where(eq(usersTable.email, email)).returning();
+          await db.update(usersTable).set({ clerkId }).where(eq(usersTable.email, email));
+          [user] = await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
         } else {
-          [user] = await db.insert(usersTable).values({ clerkId, email, name, passwordHash: "" }).returning();
+          const [result] = await db.insert(usersTable).values({ clerkId, email, name, passwordHash: "" });
+          [user] = await db.select().from(usersTable).where(eq(usersTable.id, result.insertId));
         }
       }
       req.userId = user.id;
       next();
       return;
     }
-  } catch {
+  } catch (clerkError) {
+    console.error("[AUTH] Clerk auth error:", clerkError);
     // Clerk not available or not signed in via Clerk — fall through to JWT
   }
 

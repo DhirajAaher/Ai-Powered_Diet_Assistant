@@ -167,7 +167,7 @@ export default function Chat() {
                     : 'bg-secondary/50 border rounded-tl-sm text-foreground prose prose-sm dark:prose-invert prose-p:leading-relaxed prose-pre:bg-background/50'
                 }`}>
                   {msg.role === 'assistant' ? (
-                    <ReactMarkdown>{msg.content || '...'}</ReactMarkdown>
+                    <ReactMarkdown>{msg.content || (isStreaming && i === streamMessages.length - 1 ? '...' : '')}</ReactMarkdown>
                   ) : (
                     msg.content
                   )}

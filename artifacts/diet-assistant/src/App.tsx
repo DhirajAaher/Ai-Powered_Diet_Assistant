@@ -201,7 +201,7 @@ function AuthHeroPanel({ mode }: { mode: "signin" | "signup" }) {
       >
         <div className="flex items-center gap-3 mb-2">
           <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center text-2xl shadow-lg">🌿</div>
-          <span className="text-white font-display font-bold text-3xl tracking-tight drop-shadow">NutriAI</span>
+          <span className="text-white font-display font-bold text-3xl tracking-tight drop-shadow">AI-Powered Diet Assistant</span>
         </div>
         <p className="text-white/75 text-sm font-medium">Your AI-powered wellness companion</p>
       </motion.div>
@@ -300,7 +300,7 @@ function AuthPageLayout({ children, mode }: { children: React.ReactNode; mode: "
           {/* Mobile-only branding */}
           <div className="lg:hidden flex items-center gap-2 mb-8 justify-center">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-xl shadow-lg shadow-green-500/30">🌿</div>
-            <span className="font-display font-bold text-2xl text-foreground">NutriAI</span>
+            <span className="font-display font-bold text-2xl text-foreground">AI-Powered Diet Assistant</span>
           </div>
 
           {children}
@@ -423,7 +423,7 @@ function ClerkProviderWithRoutes() {
       signUpUrl={`${basePath}/sign-up`}
       localization={{
         signIn: { start: { title: "Welcome back 👋", subtitle: "Sign in to continue your health journey" } },
-        signUp: { start: { title: "Start your journey 🌿", subtitle: "Create your free NutriAI account today" } },
+        signUp: { start: { title: "Start your journey 🌿", subtitle: "Create your free AI Diet Assistant account today" } },
       }}
       routerPush={(to) => setLocation(stripBase(to))}
       routerReplace={(to) => setLocation(stripBase(to), { replace: true })}

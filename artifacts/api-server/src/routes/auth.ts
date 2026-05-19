@@ -20,7 +20,8 @@ router.post("/register", async (req, res) => {
     return;
   }
   const passwordHash = await bcrypt.hash(password, 10);
-  const [user] = await db.insert(usersTable).values({ email, passwordHash, name }).returning();
+  const [result] = await db.insert(usersTable).values({ email, passwordHash, name });
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, result.insertId));
   const token = signToken(user.id);
   res.status(201).json({
     user: { id: user.id, email: user.email, name: user.name, createdAt: user.createdAt },

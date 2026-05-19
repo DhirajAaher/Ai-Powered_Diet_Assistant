@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { db, fastingSessionsTable } from "@workspace/db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { requireAuth, AuthRequest } from "../lib/auth.js";
+import { awardPoints } from "../lib/gamification.js";
 
 const router = Router();
 router.use(requireAuth);
@@ -22,24 +23,29 @@ router.post("/start", async (req: AuthRequest, res) => {
   await db.update(fastingSessionsTable).set({ status: "completed" }).where(
     and(eq(fastingSessionsTable.userId, req.userId!), eq(fastingSessionsTable.status, "active"))
   );
-  const [session] = await db.insert(fastingSessionsTable).values({
+  const [result] = await db.insert(fastingSessionsTable).values({
     userId: req.userId!,
     mode,
     startTime: new Date(),
     status: "active",
-  }).returning();
+  });
+  const [session] = await db.select().from(fastingSessionsTable).where(eq(fastingSessionsTable.id, result.insertId));
   res.status(201).json(session);
 });
 
 router.post("/stop", async (req: AuthRequest, res) => {
-  const [session] = await db.update(fastingSessionsTable)
+  await db.update(fastingSessionsTable)
     .set({ status: "completed", endTime: new Date() })
-    .where(and(eq(fastingSessionsTable.userId, req.userId!), eq(fastingSessionsTable.status, "active")))
-    .returning();
+    .where(and(eq(fastingSessionsTable.userId, req.userId!), eq(fastingSessionsTable.status, "active")));
+  const [session] = await db.select().from(fastingSessionsTable).where(and(eq(fastingSessionsTable.userId, req.userId!), eq(fastingSessionsTable.status, "completed"))).orderBy(sql`${fastingSessionsTable.id} DESC`).limit(1);
   if (!session) {
     res.status(404).json({ error: "No active fasting session found." });
     return;
   }
+
+  // Award points
+  await awardPoints(req.userId!, "complete_fast");
+
   res.json(session);
 });
 

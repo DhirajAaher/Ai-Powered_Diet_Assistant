@@ -3,6 +3,7 @@ import { db, mealEntriesTable, waterEntriesTable, weightEntriesTable, profilesTa
 import { eq, and, gte, lte, sql } from "drizzle-orm";
 import { LogMealBody, LogWaterBody, LogWeightBody } from "@workspace/api-zod";
 import { requireAuth, AuthRequest } from "../lib/auth.js";
+import { awardPoints } from "../lib/gamification.js";
 
 const router = Router();
 
@@ -51,7 +52,7 @@ router.post("/log-meal", async (req: AuthRequest, res) => {
   const loggedAt = parse.data.loggedAt instanceof Date
     ? parse.data.loggedAt.toISOString().split("T")[0]
     : (parse.data.loggedAt ?? today);
-  const [entry] = await db.insert(mealEntriesTable).values({
+  const [result] = await db.insert(mealEntriesTable).values({
     userId: req.userId!,
     mealType: parse.data.mealType,
     foodName: parse.data.foodName,
@@ -61,7 +62,12 @@ router.post("/log-meal", async (req: AuthRequest, res) => {
     carbsGrams: parse.data.carbsGrams ?? null,
     fatGrams: parse.data.fatGrams ?? null,
     loggedAt,
-  }).returning();
+  });
+  const [entry] = await db.select().from(mealEntriesTable).where(eq(mealEntriesTable.id, result.insertId));
+  
+  // Award points
+  await awardPoints(req.userId!, "log_meal");
+  
   res.status(201).json(entry);
 });
 
@@ -75,11 +81,16 @@ router.post("/log-water", async (req: AuthRequest, res) => {
   const waterLoggedAt = parse.data.loggedAt instanceof Date
     ? parse.data.loggedAt.toISOString().split("T")[0]
     : (parse.data.loggedAt ?? today);
-  const [entry] = await db.insert(waterEntriesTable).values({
+  const [result] = await db.insert(waterEntriesTable).values({
     userId: req.userId!,
     amountMl: parse.data.amountMl,
     loggedAt: waterLoggedAt,
-  }).returning();
+  });
+  const [entry] = await db.select().from(waterEntriesTable).where(eq(waterEntriesTable.id, result.insertId));
+  
+  // Award points
+  await awardPoints(req.userId!, "log_water");
+  
   res.json(entry);
 });
 
@@ -107,11 +118,16 @@ router.post("/weight", async (req: AuthRequest, res) => {
   const weightLoggedAt = parse.data.loggedAt instanceof Date
     ? parse.data.loggedAt.toISOString().split("T")[0]
     : (parse.data.loggedAt ?? today);
-  const [entry] = await db.insert(weightEntriesTable).values({
+  const [result] = await db.insert(weightEntriesTable).values({
     userId: req.userId!,
     weightKg: parse.data.weightKg,
     loggedAt: weightLoggedAt,
-  }).returning();
+  });
+  const [entry] = await db.select().from(weightEntriesTable).where(eq(weightEntriesTable.id, result.insertId));
+  
+  // Award points
+  await awardPoints(req.userId!, "log_weight");
+  
   res.status(201).json(entry);
 });
 

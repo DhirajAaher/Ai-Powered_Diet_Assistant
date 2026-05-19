@@ -52,29 +52,26 @@
   --popover:        0 0% 100%;
   --popover-foreground: 140 30% 10%;
 
-  /* Vibrant emerald */
-  --primary:        142 71% 42%;
+  /* Professional Emerald Green */
+  --primary:        142 71% 45%;
   --primary-foreground: 0 0% 100%;
 
-  /* Soft mint secondary */
-  --secondary:      142 40% 92%;
-  --secondary-foreground: 142 71% 28%;
+  /* Soft Mint secondary */
+  --secondary:      142 40% 96%;
+  --secondary-foreground: 142 71% 25%;
 
-  --muted:          140 12% 94%;
-  --muted-foreground: 140 10% 48%;
+  --muted:          240 10% 96%;
+  --muted-foreground: 240 10% 45%;
 
-  /* Teal accent */
-  --accent:         175 62% 42%;
+  /* Electric Teal accent */
+  --accent:         175 80% 45%;
   --accent-foreground: 0 0% 100%;
 
-  --destructive:    0 84% 60%;
-  --destructive-foreground: 0 0% 100%;
+  --border:         240 10% 90%;
+  --input:          240 10% 90%;
+  --ring:           142 71% 45%;
 
-  --border:         140 20% 88%;
-  --input:          140 20% 88%;
-  --ring:           142 71% 42%;
-
-  --radius: 1rem;
+  --radius: 1.25rem;
 }
 
 /* ─── Dark mode ──────────────────────────────────────────── */
@@ -88,24 +85,21 @@
   --popover:        220 20% 13%;
   --popover-foreground: 210 20% 94%;
 
-  --primary:        142 65% 52%;
+  --primary:        142 70% 55%;
   --primary-foreground: 220 25% 9%;
 
-  --secondary:      220 15% 20%;
+  --secondary:      220 20% 16%;
   --secondary-foreground: 210 20% 94%;
 
-  --muted:          220 15% 18%;
-  --muted-foreground: 210 10% 58%;
+  --muted:          220 20% 14%;
+  --muted-foreground: 210 10% 65%;
 
-  --accent:         175 52% 42%;
+  --accent:         175 70% 50%;
   --accent-foreground: 220 25% 9%;
 
-  --destructive:    0 62% 42%;
-  --destructive-foreground: 210 20% 94%;
-
-  --border:         220 15% 22%;
-  --input:          220 15% 22%;
-  --ring:           142 65% 52%;
+  --border:         220 20% 18%;
+  --input:          220 20% 18%;
+  --ring:           142 70% 55%;
 }
 
 /* ─── Base ───────────────────────────────────────────────── */
@@ -163,67 +157,92 @@
 
 /* ─── Utility classes ────────────────────────────────────── */
 .glass-card {
-  @apply bg-card/70 backdrop-blur-2xl border border-white/15 shadow-xl shadow-black/8;
-  @apply dark:bg-card/60 dark:border-white/8 dark:shadow-black/30;
+  @apply bg-card/60 backdrop-blur-2xl border border-white/20 shadow-2xl shadow-black/5;
+  @apply dark:bg-slate-900/40 dark:border-white/5 dark:shadow-black/20;
 }
 
-.glass-light {
-  @apply bg-white/60 backdrop-blur-xl border border-white/50 shadow-lg;
-  @apply dark:bg-slate-900/60 dark:border-white/10;
+.glass-sidebar {
+  @apply bg-white/40 backdrop-blur-3xl border-r border-white/20;
+  @apply dark:bg-slate-950/40 dark:border-white/5;
 }
 
 .text-gradient {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
+  @apply bg-clip-text text-transparent bg-gradient-to-br from-primary via-emerald-500 to-accent font-black;
 }
 
 .glow-primary {
-  box-shadow: 0 0 24px -4px hsl(var(--primary) / 0.35);
+  box-shadow: 0 0 30px -5px hsl(var(--primary) / 0.4);
+}
+
+.glow-accent {
+  box-shadow: 0 0 30px -5px hsl(var(--accent) / 0.4);
 }
 
 /* Sidebar shimmer on hover */
 .sidebar-link-active {
-  @apply bg-primary text-primary-foreground shadow-md;
-  box-shadow: 0 4px 14px -2px hsl(var(--primary) / 0.4);
+  @apply bg-gradient-to-r from-emerald-600 to-teal-600 text-primary-foreground shadow-lg;
+  box-shadow: 0 8px 20px -6px hsl(var(--primary) / 0.5);
 }
 
 /* Card hover lift */
 .card-hover {
-  @apply transition-all duration-200 hover:-translate-y-1 hover:shadow-xl;
+  @apply transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-black/10;
+  @apply dark:hover:shadow-black/40;
 }
 
-/* Badge */
-.badge-primary {
-  @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/15 text-primary border border-primary/20;
+/* Animated background mesh with rotation */
+@keyframes mesh-rotate {
+  0%   { transform: rotate(0deg) scale(1); }
+  50%  { transform: rotate(180deg) scale(1.1); }
+  100% { transform: rotate(360deg) scale(1); }
 }
 
-/* Animated background mesh */
 .mesh-bg {
+  position: fixed;
+  inset: -50%;
+  z-index: -1;
+  background-color: hsl(var(--background));
   background-image:
-    radial-gradient(ellipse at 15% 15%, hsl(var(--primary) / 0.12) 0%, transparent 55%),
-    radial-gradient(ellipse at 85% 85%, hsl(var(--accent) / 0.10) 0%, transparent 55%),
-    radial-gradient(ellipse at 75% 20%, hsl(142 60% 60% / 0.07) 0%, transparent 45%);
+    radial-gradient(at 0% 0%, hsla(142, 70%, 50%, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(175, 70%, 50%, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, hsla(142, 70%, 50%, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, hsla(175, 70%, 50%, 0.1) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, hsla(142, 70%, 50%, 0.05) 0px, transparent 50%);
+  filter: blur(100px);
+  opacity: 0.8;
+  animation: mesh-rotate 30s linear infinite;
 }
 
-/* Page fade in */
-@keyframes page-enter {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+/* Floating animation */
+@keyframes float {
+  0%   { transform: translateY(0px); }
+  50%  { transform: translateY(-8px); }
+  100% { transform: translateY(0px); }
 }
-.page-enter {
-  animation: page-enter 0.3s ease forwards;
+.animate-float {
+  animation: float 5s ease-in-out infinite;
 }
 
-/* Pulse ring */
-@keyframes pulse-ring {
-  0%   { transform: scale(1);   opacity: 0.6; }
-  70%  { transform: scale(1.15); opacity: 0; }
-  100% { transform: scale(1.15); opacity: 0; }
+/* Shimmer effect */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
-.pulse-ring::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  border: 2px solid hsl(var(--primary));
-  animation: pulse-ring 2s cubic-bezier(0.4,0,0.6,1) infinite;
+.shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.sidebar-link-active {
+  @apply bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-primary-foreground shadow-lg;
+  box-shadow: 0 8px 24px -6px hsl(var(--primary) / 0.6);
+}
+
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-br from-emerald-600 via-teal-500 to-emerald-400 font-black;
+}
+
+.stat-card-gradient {
+  background: linear-gradient(135deg, hsla(var(--primary) / 0.08) 0%, hsla(var(--accent) / 0.08) 100%);
 }

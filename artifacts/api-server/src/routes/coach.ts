@@ -3,6 +3,7 @@ import { db, profilesTable, mealEntriesTable, gamificationTable } from "@workspa
 import { eq, and, gte } from "drizzle-orm";
 import { openai } from "@workspace/integrations-openai-ai-server";
 import { requireAuth, AuthRequest } from "../lib/auth.js";
+import { gemini, GEMINI_MODEL } from "../lib/gemini";
 
 const router = Router();
 router.use(requireAuth);
@@ -32,8 +33,8 @@ Send a short, personalized daily coaching message (3-4 sentences max). Include:
 
 Keep it warm, conversational, and encouraging. No lists, just natural text.`;
 
-  const completion = await openai.chat.completions.create({
-    model: "gpt-5.2",
+  const completion = await gemini.chat.completions.create({
+    model: GEMINI_MODEL,
     max_completion_tokens: 256,
     messages: [{ role: "user", content: prompt }],
   });
@@ -74,8 +75,8 @@ Respond ONLY in this JSON format (no markdown):
 
 Include 2-4 risks based on the data. If everything looks good, include one positive "info" type message.`;
 
-  const completion = await openai.chat.completions.create({
-    model: "gpt-5.2",
+  const completion = await gemini.chat.completions.create({
+    model: GEMINI_MODEL,
     max_completion_tokens: 512,
     messages: [{ role: "user", content: prompt }],
   });

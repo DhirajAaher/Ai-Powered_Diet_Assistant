@@ -14,7 +14,7 @@ const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 export default function VoiceAgent() {
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", text: "Hello! I'm your NutriAI voice coach. Ask me anything about your diet, nutrition, or healthy lifestyle. You can speak to me or type your question!" }
+    { role: "assistant", text: "Hello! I'm your AI Diet Assistant voice coach. Ask me anything about your diet, nutrition, or healthy lifestyle. You can speak to me or type your question!" }
   ]);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -104,6 +104,7 @@ export default function VoiceAgent() {
       const response = await fetch(`${BASE}/api/openai/conversations/${convId}/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+        credentials: "include",
         body: JSON.stringify({ content: text }),
       });
 
@@ -120,12 +121,13 @@ export default function VoiceAgent() {
         const lines = chunk.split("\n");
         for (const line of lines) {
           if (line.startsWith("data: ")) {
-            const data = line.slice(6);
-            if (data === "[DONE]") break;
+            const dataStr = line.slice(6);
+            if (!dataStr) continue;
             try {
-              const parsed = JSON.parse(data);
-              const delta = parsed.choices?.[0]?.delta?.content ?? "";
-              fullText += delta;
+              const parsed = JSON.parse(dataStr);
+              if (parsed.done) break;
+              const content = parsed.content ?? "";
+              fullText += content;
               setMessages(prev => {
                 const updated = [...prev];
                 updated[updated.length - 1] = { role: "assistant", text: fullText };
@@ -150,7 +152,7 @@ export default function VoiceAgent() {
           <h1 className="text-3xl font-display font-bold flex items-center gap-3">
             <Bot className="w-8 h-8 text-primary" /> Voice AI Coach
           </h1>
-          <p className="text-muted-foreground mt-1">Speak naturally with your personal NutriAI diet coach.</p>
+          <p className="text-muted-foreground mt-1">Speak naturally with your personal AI Diet Coach.</p>
         </div>
         <Button variant="outline" size="sm" onClick={() => { synthRef.current?.cancel(); setIsMuted(!isMuted); }} className="gap-2">
           {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}

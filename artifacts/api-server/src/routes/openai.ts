@@ -4,6 +4,8 @@ import { eq } from "drizzle-orm";
 import { CreateOpenaiConversationBody, SendOpenaiMessageBody } from "@workspace/api-zod";
 import { openai } from "@workspace/integrations-openai-ai-server";
 import { requireAuth, AuthRequest } from "../lib/auth.js";
+import { gemini, GEMINI_MODEL } from "../lib/gemini";
+import { awardPoints } from "../lib/gamification.js";
 
 const router = Router();
 
@@ -23,7 +25,8 @@ Always remind users to consult healthcare professionals for medical nutrition ad
 
 router.get("/conversations", async (req: AuthRequest, res) => {
   const convs = await db.select().from(conversations).orderBy(conversations.createdAt);
-  res.json(convs);
+  // Reverse to show newest first in the sidebar
+  res.json([...convs].reverse());
 });
 
 router.post("/conversations", async (req: AuthRequest, res) => {
@@ -32,7 +35,8 @@ router.post("/conversations", async (req: AuthRequest, res) => {
     res.status(400).json({ error: parse.error.message });
     return;
   }
-  const [conv] = await db.insert(conversations).values({ title: parse.data.title }).returning();
+  const [result] = await db.insert(conversations).values({ title: parse.data.title });
+  const [conv] = await db.select().from(conversations).where(eq(conversations.id, result.insertId));
   res.status(201).json(conv);
 });
 
@@ -101,14 +105,17 @@ router.post("/conversations/:id/messages", async (req: AuthRequest, res) => {
   let fullResponse = "";
 
   try {
-    const stream = await openai.chat.completions.create({
-      model: "gpt-5.2",
+    const stream = await gemini.chat.completions.create({
+      model: GEMINI_MODEL,
       max_completion_tokens: 8192,
       messages: chatMessages,
       stream: true,
     });
 
+    req.log.info({ conversationId: id }, "Starting AI chat stream");
+
     for await (const chunk of stream) {
+      if (!chunk.choices || chunk.choices.length === 0) continue;
       const content = chunk.choices[0]?.delta?.content;
       if (content) {
         fullResponse += content;
@@ -125,6 +132,9 @@ router.post("/conversations/:id/messages", async (req: AuthRequest, res) => {
 
     res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
     res.end();
+
+    // Award points
+    await awardPoints(req.userId!, "chat_message");
   } catch (error) {
     req.log.error({ error }, "Error in OpenAI chat stream");
     res.write(`data: ${JSON.stringify({ error: "AI service error" })}\n\n`);

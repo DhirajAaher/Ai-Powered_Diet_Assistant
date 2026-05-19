@@ -25,44 +25,49 @@ router.post("/", async (req: AuthRequest, res) => {
   }
   const data = parse.data;
 
-  // Calculate BMR and daily calorie target
-  const bmr = data.gender === "male"
-    ? 10 * data.weightKg + 6.25 * data.heightCm - 5 * data.age + 5
-    : 10 * data.weightKg + 6.25 * data.heightCm - 5 * data.age - 161;
+  try {
+    // Calculate BMR and daily calorie target
+    const bmr = data.gender === "male"
+      ? 10 * data.weightKg + 6.25 * data.heightCm - 5 * data.age + 5
+      : 10 * data.weightKg + 6.25 * data.heightCm - 5 * data.age - 161;
 
-  const activityMultipliers: Record<string, number> = {
-    sedentary: 1.2,
-    lightly_active: 1.375,
-    moderately_active: 1.55,
-    very_active: 1.725,
-    extra_active: 1.9,
-  };
-  const tdee = bmr * (activityMultipliers[data.activityLevel] || 1.55);
-  const goalAdjustments: Record<string, number> = {
-    weight_loss: -500,
-    muscle_gain: 300,
-    maintenance: 0,
-    improve_health: 0,
-  };
-  const dailyCalorieTarget = Math.round(tdee + (goalAdjustments[data.goal] || 0));
+    const activityMultipliers: Record<string, number> = {
+      sedentary: 1.2,
+      lightly_active: 1.375,
+      moderately_active: 1.55,
+      very_active: 1.725,
+      extra_active: 1.9,
+    };
+    const tdee = bmr * (activityMultipliers[data.activityLevel] || 1.55);
+    const goalAdjustments: Record<string, number> = {
+      weight_loss: -500,
+      muscle_gain: 300,
+      maintenance: 0,
+      improve_health: 0,
+    };
+    const dailyCalorieTarget = Math.round(tdee + (goalAdjustments[data.goal] || 0));
 
-  const existing = await db.select().from(profilesTable).where(eq(profilesTable.userId, req.userId!)).limit(1);
+    const existing = await db.select().from(profilesTable).where(eq(profilesTable.userId, req.userId!)).limit(1);
 
-  let profile;
-  if (existing.length > 0) {
-    [profile] = await db
-      .update(profilesTable)
-      .set({ ...data, dailyCalorieTarget, updatedAt: new Date() })
-      .where(eq(profilesTable.userId, req.userId!))
-      .returning();
-  } else {
-    [profile] = await db
-      .insert(profilesTable)
-      .values({ ...data, userId: req.userId!, dailyCalorieTarget })
-      .returning();
+    let profile;
+    if (existing.length > 0) {
+      await db
+        .update(profilesTable)
+        .set({ ...data, dailyCalorieTarget, updatedAt: new Date() })
+        .where(eq(profilesTable.userId, req.userId!));
+      [profile] = await db.select().from(profilesTable).where(eq(profilesTable.userId, req.userId!)).limit(1);
+    } else {
+      const [result] = await db
+        .insert(profilesTable)
+        .values({ ...data, userId: req.userId!, dailyCalorieTarget });
+      [profile] = await db.select().from(profilesTable).where(eq(profilesTable.id, result.insertId));
+    }
+
+    res.json(profile);
+  } catch (err: any) {
+    console.error("Profile save error:", err);
+    res.status(500).json({ error: "Failed to save profile", details: err?.message });
   }
-
-  res.json(profile);
 });
 
 export default router;

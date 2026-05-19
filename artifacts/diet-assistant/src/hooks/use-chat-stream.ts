@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { getAuthToken } from "@/lib/auth";
+import { getAuthToken, getAuthHeaders } from "@/lib/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { getListOpenaiMessagesQueryKey } from "@workspace/api-client-react";
 
@@ -34,8 +34,9 @@ export function useChatStream(conversationId: number | null) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getAuthToken()}`
+          ...getAuthHeaders()
         },
+        credentials: 'include',
         body: JSON.stringify({ content })
       });
 
@@ -63,6 +64,13 @@ export function useChatStream(conversationId: number | null) {
               if (data.done) {
                 // Done streaming
                 break;
+              } else if (data.error) {
+                // Handle error message from backend
+                setMessages(prev => prev.map(msg => 
+                  msg.id === assistantMsgId 
+                    ? { ...msg, content: `Error: ${data.error}` } 
+                    : msg
+                ));
               } else if (data.content) {
                 // Append text
                 setMessages(prev => prev.map(msg => 
@@ -72,6 +80,7 @@ export function useChatStream(conversationId: number | null) {
                 ));
               }
             } catch (e) {
+
               console.error("Error parsing stream chunk", e);
             }
           }

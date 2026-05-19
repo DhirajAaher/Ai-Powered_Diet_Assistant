@@ -1,0 +1,11 @@
+{
+  "model": "llama3:latest",
+  "messages": [
+    {
+      "role": "user",
+      "content": "hi"
+    }
+  ],
+  "stream": false,
+  "max_tokens": 10
+}

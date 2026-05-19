@@ -1,4 +1,5 @@
 import { useGetTodayLog, useGetProfile, useListWeightLogs } from "@workspace/api-client-react";
+import { useTranslation } from "react-i18next";
 import { getAuthHeaders } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "rec
 import { format, parseISO } from "date-fns";
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const headers = { request: { headers: getAuthHeaders() } };
   const { data: log, isLoading: logLoading } = useGetTodayLog(headers);
   const { data: profile, isLoading: profileLoading } = useGetProfile(headers);
@@ -33,12 +35,13 @@ export default function Dashboard() {
   const percentage = Math.min(100, Math.round((consumedCalories / targetCalories) * 100));
   
   const macros = [
-    { label: "Protein", value: log?.totalProteinGrams || 0, target: 120, color: "bg-blue-500" },
-    { label: "Carbs", value: log?.totalCarbsGrams || 0, target: 200, color: "bg-orange-500" },
-    { label: "Fat", value: log?.totalFatGrams || 0, target: 65, color: "bg-yellow-500" },
+    { label: t("dashboard.protein"), value: log?.totalProteinGrams || 0, target: 120, color: "bg-blue-500" },
+    { label: t("dashboard.carbs"), value: log?.totalCarbsGrams || 0, target: 200, color: "bg-orange-500" },
+    { label: t("dashboard.fat"), value: log?.totalFatGrams || 0, target: 65, color: "bg-yellow-500" },
   ];
 
-  const weightData = (weights || []).slice(0, 7).reverse().map(w => ({
+  const weightArray = Array.isArray(weights) ? weights : [];
+  const weightData = weightArray.slice(0, 7).reverse().map(w => ({
     date: format(parseISO(w.loggedAt), 'MMM dd'),
     weight: w.weightKg
   }));
@@ -47,12 +50,12 @@ export default function Dashboard() {
     <div className="space-y-8 pb-12">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h1 className="text-3xl font-display font-bold">Today's Overview</h1>
-          <p className="text-muted-foreground mt-1">Track your progress and stay on top of your goals.</p>
+          <h1 className="text-3xl font-display font-bold">{t("dashboard.title")}</h1>
+          <p className="text-muted-foreground mt-1">{t("dashboard.subtitle")}</p>
         </div>
         <Link href="/tracker">
           <Button className="rounded-full shadow-lg hover:-translate-y-0.5 transition-transform">
-            Log Activity <ArrowRight className="w-4 h-4 ml-2" />
+            {t("dashboard.logActivity")} <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </Link>
       </div>
@@ -60,10 +63,10 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Calories Ring */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <Card className="h-full border-0 shadow-lg shadow-black/5 bg-gradient-to-br from-card to-card/50">
+          <Card className="h-full glass-card card-hover border-0 animate-float">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
-                <Flame className="w-5 h-5 text-orange-500" /> Calories
+                <Flame className="w-5 h-5 text-orange-500" /> {t("dashboard.calories")}
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col items-center justify-center pb-6">
@@ -79,8 +82,8 @@ export default function Dashboard() {
                   />
                 </svg>
                 <div className="absolute text-center">
-                  <span className="text-3xl font-display font-bold text-foreground">{consumedCalories}</span>
-                  <span className="text-xs block text-muted-foreground mt-1">/ {targetCalories} kcal</span>
+                  <span className="text-4xl font-display font-black text-gradient">{consumedCalories}</span>
+                  <span className="text-xs block text-muted-foreground font-semibold mt-1">/ {targetCalories} kcal</span>
                 </div>
               </div>
               <p className="mt-4 text-sm font-medium text-muted-foreground">
@@ -94,7 +97,7 @@ export default function Dashboard() {
 
         {/* Macros */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-          <Card className="h-full border-0 shadow-lg shadow-black/5">
+          <Card className="h-full glass-card card-hover border-0 animate-float" style={{ animationDelay: '0.5s' }}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Activity className="w-5 h-5 text-primary" /> Macronutrients
@@ -107,9 +110,9 @@ export default function Dashboard() {
                     <span className="font-medium">{m.label}</span>
                     <span className="text-muted-foreground">{m.value}g / {m.target}g</span>
                   </div>
-                  <div className="h-2.5 bg-secondary rounded-full overflow-hidden">
+                  <div className="h-2.5 bg-secondary/50 rounded-full overflow-hidden shadow-inner">
                     <div 
-                      className={`h-full ${m.color} rounded-full transition-all duration-1000`} 
+                      className={`h-full ${m.color} rounded-full transition-all duration-1000 shadow-[0_0_12px_-2px_rgba(0,0,0,0.1)]`} 
                       style={{ width: `${Math.min(100, (m.value / m.target) * 100)}%` }} 
                     />
                   </div>
@@ -121,16 +124,16 @@ export default function Dashboard() {
 
         {/* Water */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-          <Card className="h-full border-0 shadow-lg shadow-black/5 overflow-hidden relative">
+          <Card className="h-full glass-card card-hover border-0 overflow-hidden relative animate-float" style={{ animationDelay: '1s' }}>
             <div className="absolute inset-0 bg-blue-500/5 -z-10" />
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
-                <Droplets className="w-5 h-5 text-blue-500" /> Hydration
+                <Droplets className="w-5 h-5 text-blue-500" /> {t("dashboard.water")}
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col items-center justify-center pt-4">
-              <div className="text-4xl font-display font-bold text-blue-500">
-                {log?.totalWaterMl || 0} <span className="text-xl text-blue-400">ml</span>
+              <div className="text-4xl font-display font-black text-blue-500 drop-shadow-sm">
+                {log?.totalWaterMl || 0} <span className="text-xl text-blue-400 font-bold">ml</span>
               </div>
               <p className="text-sm text-muted-foreground mt-2 mb-6">Daily target: {log?.waterTarget || 2000} ml</p>
               
@@ -151,7 +154,7 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         {/* Recent Meals */}
-        <Card className="border-0 shadow-lg shadow-black/5">
+        <Card className="glass-card card-hover border-0">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle>Recent Meals</CardTitle>
@@ -170,7 +173,7 @@ export default function Dashboard() {
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-primary">{meal.calories} kcal</p>
-                      <p className="text-xs text-muted-foreground">P: {meal.proteinGrams}g • C: {meal.carbsGrams}g</p>
+                      <p className="text-xs text-muted-foreground">P: {meal.proteinGrams}g • C: {meal.carbsGrams}g • F: {meal.fatGrams}g</p>
                     </div>
                   </div>
                 ))}
@@ -188,7 +191,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Weight Trend */}
-        <Card className="border-0 shadow-lg shadow-black/5">
+        <Card className="glass-card card-hover border-0">
           <CardHeader>
             <CardTitle>Weight Trend</CardTitle>
             <CardDescription>Past 7 days progress</CardDescription>

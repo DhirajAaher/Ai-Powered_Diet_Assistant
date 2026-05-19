@@ -39,7 +39,7 @@ export default function Register() {
           <div className="bg-primary/10 p-3 rounded-2xl text-primary mb-4 ring-1 ring-primary/20">
             <Leaf className="w-8 h-8" />
           </div>
-          <h1 className="text-3xl font-display font-bold text-foreground">Join NutriAI</h1>
+          <h1 className="text-3xl font-display font-bold text-foreground">Join AI-Powered Diet Assistant</h1>
           <p className="text-muted-foreground mt-2 text-center">
             Start your journey to a healthier lifestyle today.
           </p>

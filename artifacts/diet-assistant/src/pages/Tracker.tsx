@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { 
   useLogMeal, 
   useLogWater, 
@@ -17,6 +18,7 @@ import { Utensils, Droplets, Scale, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Tracker() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const headers = { request: { headers: getAuthHeaders() } };
@@ -33,6 +35,8 @@ export default function Tracker() {
   const [portion, setPortion] = useState("");
   const [calories, setCalories] = useState("");
   const [protein, setProtein] = useState("");
+  const [carbs, setCarbs] = useState("");
+  const [fats, setFats] = useState("");
 
   const handleLogMeal = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,11 +47,13 @@ export default function Tracker() {
         portionSize: portion,
         calories: parseInt(calories),
         proteinGrams: protein ? parseInt(protein) : undefined,
+        carbsGrams: carbs ? parseInt(carbs) : undefined,
+        fatGrams: fats ? parseInt(fats) : undefined,
       }
     }, {
       onSuccess: () => {
         toast({ title: "Meal logged!", description: `${foodName} added to today's log.` });
-        setFoodName(""); setPortion(""); setCalories(""); setProtein("");
+        setFoodName(""); setPortion(""); setCalories(""); setProtein(""); setCarbs(""); setFats("");
         queryClient.invalidateQueries({ queryKey: getGetTodayLogQueryKey() });
       }
     });
@@ -75,13 +81,13 @@ export default function Tracker() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-3xl font-display font-bold mb-8">Daily Tracker</h1>
+      <h1 className="text-3xl font-display font-bold mb-8">{t("tracker.title")}</h1>
 
       <div className="flex p-1 bg-secondary rounded-2xl mb-8 border border-border/50">
         {[
-          { id: 'meal', label: 'Food', icon: Utensils },
-          { id: 'water', label: 'Water', icon: Droplets },
-          { id: 'weight', label: 'Weight', icon: Scale },
+          { id: 'meal', label: t("tracker.foodTab"), icon: Utensils },
+          { id: 'water', label: t("tracker.waterTab"), icon: Droplets },
+          { id: 'weight', label: t("tracker.weightTab"), icon: Scale },
         ].map(tab => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -89,8 +95,8 @@ export default function Tracker() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium transition-all ${
-                isActive ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${
+                isActive ? 'bg-primary text-primary-foreground shadow-lg glow-primary' : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
               }`}
             >
               <Icon className={`w-4 h-4 ${isActive && tab.id === 'water' ? 'text-blue-500' : isActive ? 'text-primary' : ''}`} />
@@ -107,16 +113,16 @@ export default function Tracker() {
         transition={{ duration: 0.2 }}
       >
         {activeTab === 'meal' && (
-          <Card className="border-0 shadow-xl shadow-black/5">
+          <Card className="glass-card card-hover border-0">
             <CardHeader>
-              <CardTitle>Log a Meal</CardTitle>
-              <CardDescription>Keep track of your daily intake</CardDescription>
+              <CardTitle>{t("tracker.logMeal")}</CardTitle>
+              <CardDescription>{t("tracker.subtitle")}</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleLogMeal} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2 col-span-2">
-                    <Label>Meal Type</Label>
+                    <Label>{t("tracker.mealType")}</Label>
                     <div className="flex gap-2">
                       {(["breakfast", "lunch", "dinner", "snack"] as const).map(type => (
                         <button
@@ -132,20 +138,28 @@ export default function Tracker() {
                     </div>
                   </div>
                   <div className="space-y-2 col-span-2">
-                    <Label>Food Name</Label>
+                    <Label>{t("tracker.foodName")}</Label>
                     <Input value={foodName} onChange={e => setFoodName(e.target.value)} required placeholder="e.g. Grilled Chicken Salad" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Portion Size</Label>
+                    <Label>{t("tracker.portionSize")}</Label>
                     <Input value={portion} onChange={e => setPortion(e.target.value)} required placeholder="e.g. 1 bowl, 200g" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Calories</Label>
+                    <Label>{t("tracker.calories")}</Label>
                     <Input type="number" value={calories} onChange={e => setCalories(e.target.value)} required placeholder="kcal" />
                   </div>
-                  <div className="space-y-2 col-span-2">
-                    <Label>Protein (optional, grams)</Label>
+                  <div className="space-y-2">
+                    <Label>{t("tracker.protein")} (optional, g)</Label>
                     <Input type="number" value={protein} onChange={e => setProtein(e.target.value)} placeholder="g" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t("tracker.carbs")} (optional, g)</Label>
+                    <Input type="number" value={carbs} onChange={e => setCarbs(e.target.value)} placeholder="g" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t("tracker.fats")} (optional, g)</Label>
+                    <Input type="number" value={fats} onChange={e => setFats(e.target.value)} placeholder="g" />
                   </div>
                 </div>
                 <Button type="submit" className="w-full mt-4" disabled={logMeal.isPending}>
@@ -157,13 +171,13 @@ export default function Tracker() {
         )}
 
         {activeTab === 'water' && (
-          <Card className="border-0 shadow-xl shadow-black/5 overflow-hidden">
+          <Card className="glass-card card-hover border-0 overflow-hidden relative">
             <div className="absolute top-0 right-0 p-8 opacity-5">
               <Droplets className="w-32 h-32" />
             </div>
             <CardHeader>
-              <CardTitle>Hydration</CardTitle>
-              <CardDescription>Quick log your water intake</CardDescription>
+              <CardTitle>{t("tracker.hydration")}</CardTitle>
+              <CardDescription>{t("fasting.subtitle")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-3 gap-4">
@@ -191,10 +205,10 @@ export default function Tracker() {
         )}
 
         {activeTab === 'weight' && (
-          <Card className="border-0 shadow-xl shadow-black/5">
+          <Card className="glass-card card-hover border-0">
             <CardHeader>
-              <CardTitle>Log Weight</CardTitle>
-              <CardDescription>Keep track of your body weight changes</CardDescription>
+              <CardTitle>{t("tracker.logWeight")}</CardTitle>
+              <CardDescription>{t("tracker.subtitle")}</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleLogWeight} className="flex gap-4">

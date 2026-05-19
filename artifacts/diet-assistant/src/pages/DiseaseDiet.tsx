@@ -50,6 +50,7 @@ export default function DiseaseDiet() {
       const resp = await fetch(`${BASE}/api/diet/disease-plan`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+        credentials: "include",
         body: JSON.stringify({
           conditions: selected,
           conditionNames,
