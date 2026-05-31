@@ -1,6 +1,6 @@
 import { getAuthHeaders } from "./auth";
 
-const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+const BASE = (import.meta.env.VITE_API_URL || import.meta.env.BASE_URL).replace(/\/$/, "");
 
 async function req<T>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
