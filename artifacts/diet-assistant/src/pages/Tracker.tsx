@@ -4,6 +4,7 @@ import {
   useLogMeal, 
   useLogWater, 
   useLogWeight,
+  useCheckFoodCalories,
   LogMealBodyMealType,
   getGetTodayLogQueryKey
 } from "@workspace/api-client-react";
@@ -28,6 +29,7 @@ export default function Tracker() {
   const logMeal = useLogMeal(headers);
   const logWater = useLogWater(headers);
   const logWeight = useLogWeight(headers);
+  const checkFood = useCheckFoodCalories(headers);
 
   // Meal state
   const [mealType, setMealType] = useState<LogMealBodyMealType>("lunch");
@@ -55,6 +57,25 @@ export default function Tracker() {
         toast({ title: "Meal logged!", description: `${foodName} added to today's log.` });
         setFoodName(""); setPortion(""); setCalories(""); setProtein(""); setCarbs(""); setFats("");
         queryClient.invalidateQueries({ queryKey: getGetTodayLogQueryKey() });
+      }
+    });
+  };
+
+  const handleAutoFill = () => {
+    if (!foodName || !portion) {
+      toast({ title: "Missing Information", description: "Please enter food name and portion size first." });
+      return;
+    }
+    checkFood.mutate({ data: { foodName, portionSize: portion } }, {
+      onSuccess: (data) => {
+        if (data.calories !== undefined) setCalories(data.calories.toString());
+        if (data.proteinGrams !== undefined) setProtein(data.proteinGrams.toString());
+        if (data.carbsGrams !== undefined) setCarbs(data.carbsGrams.toString());
+        if (data.fatGrams !== undefined) setFats(data.fatGrams.toString());
+        toast({ title: "Auto-filled with AI ✨", description: "Nutritional info added successfully." });
+      },
+      onError: () => {
+        toast({ title: "Error", description: "Failed to fetch nutritional info. Try again.", variant: "destructive" });
       }
     });
   };
@@ -141,23 +162,34 @@ export default function Tracker() {
                     <Label>{t("tracker.foodName")}</Label>
                     <Input value={foodName} onChange={e => setFoodName(e.target.value)} required placeholder="e.g. Grilled Chicken Salad" />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2 col-span-2 sm:col-span-1">
                     <Label>{t("tracker.portionSize")}</Label>
                     <Input value={portion} onChange={e => setPortion(e.target.value)} required placeholder="e.g. 1 bowl, 200g" />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2 col-span-2 sm:col-span-1 flex items-end">
+                    <Button 
+                      type="button" 
+                      onClick={handleAutoFill} 
+                      disabled={checkFood.isPending || !foodName || !portion} 
+                      variant="secondary" 
+                      className="w-full h-10 bg-secondary hover:bg-secondary/80 text-secondary-foreground border-primary/20 border transition-all"
+                    >
+                       {checkFood.isPending ? "Analyzing..." : "✨ Auto-fill Macros"}
+                    </Button>
+                  </div>
+                  <div className="space-y-2 col-span-2 sm:col-span-1">
                     <Label>{t("tracker.calories")}</Label>
                     <Input type="number" value={calories} onChange={e => setCalories(e.target.value)} required placeholder="kcal" />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2 col-span-2 sm:col-span-1">
                     <Label>{t("tracker.protein")} (optional, g)</Label>
                     <Input type="number" value={protein} onChange={e => setProtein(e.target.value)} placeholder="g" />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2 col-span-2 sm:col-span-1">
                     <Label>{t("tracker.carbs")} (optional, g)</Label>
                     <Input type="number" value={carbs} onChange={e => setCarbs(e.target.value)} placeholder="g" />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2 col-span-2 sm:col-span-1">
                     <Label>{t("tracker.fats")} (optional, g)</Label>
                     <Input type="number" value={fats} onChange={e => setFats(e.target.value)} placeholder="g" />
                   </div>

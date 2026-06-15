@@ -97,9 +97,13 @@ export function Layout({ children }: { children: ReactNode }) {
           "flex items-center gap-2.5 p-2.5 rounded-xl",
           isDark ? "bg-slate-800/60" : "bg-slate-50"
         )}>
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center font-bold text-white text-sm font-display flex-shrink-0 shadow-lg glow-primary">
-            {initials}
-          </div>
+          {user?.hasImage ? (
+            <img src={user.imageUrl} alt={displayName} className="w-10 h-10 rounded-xl object-cover shadow-lg flex-shrink-0 border border-primary/20" />
+          ) : (
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center font-bold text-white text-sm font-display flex-shrink-0 shadow-lg glow-primary">
+              {initials}
+            </div>
+          )}
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold truncate text-foreground">{displayName}</p>
             <p className="text-[11px] text-muted-foreground truncate">{displayEmail}</p>

@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useGetProfile, useCreateOrUpdateProfile, UserProfileBody } from "@workspace/api-client-react";
+import { useUser } from "@clerk/react";
 import { getAuthHeaders } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,9 @@ import { motion } from "framer-motion";
 
 export default function Profile() {
   const { toast } = useToast();
+  const { user } = useUser();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const headers = { request: { headers: getAuthHeaders() } };
   
   const { data: profile, isLoading } = useGetProfile({
@@ -63,13 +67,42 @@ export default function Profile() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleImageClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      await user?.setProfileImage({ file });
+      toast({ title: "Profile picture updated!" });
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Upload failed", description: err.errors?.[0]?.message || "Something went wrong" });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   if (isLoading) return <div className="animate-pulse h-96 bg-muted rounded-2xl"></div>;
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-3xl mx-auto space-y-6">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="p-3 bg-primary/10 text-primary rounded-xl">
-          <UserCircle className="w-8 h-8" />
+      <div className="flex items-center gap-4 mb-8">
+        <div className="relative group cursor-pointer" onClick={handleImageClick}>
+          {user?.hasImage ? (
+            <img src={user.imageUrl} alt="Profile" className={`w-16 h-16 rounded-2xl object-cover shadow-lg ${isUploading ? 'opacity-50' : ''}`} />
+          ) : (
+            <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white shadow-lg ${isUploading ? 'opacity-50' : ''}`}>
+              <UserCircle className="w-8 h-8" />
+            </div>
+          )}
+          <div className="absolute inset-0 bg-black/40 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <span className="text-white text-xs font-semibold text-center leading-tight">Change<br/>Photo</span>
+          </div>
+          <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageChange} />
         </div>
         <div>
           <h1 className="text-3xl font-display font-bold">My Profile</h1>
