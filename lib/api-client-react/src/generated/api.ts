@@ -858,6 +858,90 @@ export function useGetDietPlan<
 }
 
 /**
+ * @summary Delete a specific diet plan
+ */
+export const getDeleteDietPlanUrl = (id: number) => {
+  return `/api/diet/plans/${id}`;
+};
+
+export const deleteDietPlan = async (
+  id: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteDietPlanUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteDietPlanMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteDietPlan>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteDietPlan>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteDietPlan"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteDietPlan>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteDietPlan(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteDietPlanMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteDietPlan>>
+>;
+
+export type DeleteDietPlanMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Delete a specific diet plan
+ */
+export const useDeleteDietPlan = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteDietPlan>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteDietPlan>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeleteDietPlanMutationOptions(options));
+};
+
+/**
  * @summary Check calories and nutrition for a food item
  */
 export const getCheckFoodCaloriesUrl = () => {

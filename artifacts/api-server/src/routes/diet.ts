@@ -24,6 +24,7 @@ function generateFallbackPlan(profile: {
   dietPreference: string;
   goal: string;
   dailyCalorieTarget: number | null;
+  dietType?: string;
 }) {
   const cal = profile.dailyCalorieTarget || 2000;
   const isVeg = ["vegetarian", "vegan"].includes(profile.dietPreference);
@@ -186,7 +187,7 @@ function generateFallbackPlan(profile: {
   });
 
   return {
-    title: `${profile.goal.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())} Diet Plan`,
+    title: profile.dietType ? `${profile.dietType} Diet Plan` : `${profile.goal.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())} Diet Plan`,
     dailyCalories: cal,
     proteinGrams,
     carbsGrams,
@@ -210,19 +211,21 @@ router.post("/generate-plan", async (req: AuthRequest, res) => {
   }
 
   let planData: Record<string, unknown>;
+  const dietType = parse.data.dietType || (req.body as any).dietType;
+  const dietTypeStr = dietType ? `\n- Regional/Custom Diet Type: ${dietType}` : "";
 
   try {
     const prompt = `You are a professional nutritionist. Create a detailed 7-day personalized meal plan for:
 - Age: ${profile.age}, Gender: ${profile.gender}
 - Height: ${profile.heightCm}cm, Weight: ${profile.weightKg}kg
 - Activity Level: ${profile.activityLevel.replace(/_/g, " ")}
-- Diet Preference: ${profile.dietPreference.replace(/_/g, " ")}
+- Diet Preference: ${profile.dietPreference.replace(/_/g, " ")}${dietTypeStr}
 - Goal: ${profile.goal.replace(/_/g, " ")}
 - Daily Calorie Target: ${profile.dailyCalorieTarget} kcal
 
 Respond in this EXACT JSON format (no markdown, just JSON):
 {
-  "title": "Personalized Diet Plan for [goal]",
+  "title": "A descriptive title (e.g., 7-Day Maharashtrian Muscle Gain Plan, or customized to the user's diet type)",
   "dailyCalories": ${profile.dailyCalorieTarget},
   "proteinGrams": <calculated>,
   "carbsGrams": <calculated>,
@@ -258,12 +261,12 @@ Respond in this EXACT JSON format (no markdown, just JSON):
     try {
       planData = JSON.parse(content.trim());
     } catch {
-      planData = generateFallbackPlan(profile);
+      planData = generateFallbackPlan({ ...profile, dietType });
     }
 
   } catch (aiError) {
     console.warn("[DIET] AI service unavailable, using smart fallback:", (aiError as Error).message);
-    planData = generateFallbackPlan(profile);
+    planData = generateFallbackPlan({ ...profile, dietType });
   }
 
   try {
@@ -307,6 +310,17 @@ router.get("/plans/:id", async (req: AuthRequest, res) => {
     return;
   }
   res.json(plan);
+});
+
+router.delete("/plans/:id", async (req: AuthRequest, res) => {
+  const id = parseInt(String(req.params.id));
+  const [plan] = await db.select().from(dietPlansTable).where(eq(dietPlansTable.id, id)).limit(1);
+  if (!plan || plan.userId !== req.userId!) {
+    res.status(404).json({ error: "Plan not found" });
+    return;
+  }
+  await db.delete(dietPlansTable).where(eq(dietPlansTable.id, id));
+  res.status(204).send();
 });
 
 router.post("/check-food", async (req: AuthRequest, res) => {

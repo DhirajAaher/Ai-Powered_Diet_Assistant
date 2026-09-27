@@ -181,6 +181,12 @@ export const CreateOrUpdateProfileResponse = zod.object({
  */
 export const GenerateDietPlanBody = zod.object({
   profileId: zod.number(),
+  dietType: zod
+    .string()
+    .optional()
+    .describe(
+      "Optional regional or custom diet type (e.g. Maharashtrian, Gujarati)",
+    ),
 });
 
 export const GenerateDietPlanResponse = zod.object({
@@ -231,6 +237,13 @@ export const GetDietPlanResponse = zod.object({
     .optional()
     .describe("JSON stringified grocery list"),
   createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete a specific diet plan
+ */
+export const DeleteDietPlanParams = zod.object({
+  id: zod.coerce.number(),
 });
 
 /**

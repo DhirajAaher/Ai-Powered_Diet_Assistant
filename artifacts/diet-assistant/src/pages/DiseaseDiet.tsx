@@ -123,8 +123,8 @@ export default function DiseaseDiet() {
                 <CardHeader className="pb-3"><CardTitle className="text-base text-green-700 flex items-center gap-2"><CheckCircle className="w-4 h-4" />Foods to Eat</CardTitle></CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {plan.foods_to_eat?.map((f, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm"><span className="text-green-500 mt-0.5">✓</span>{f}</li>
+                    {plan.foods_to_eat?.map((f: any, i: number) => (
+                      <li key={i} className="flex items-start gap-2 text-sm"><span className="text-green-500 mt-0.5">✓</span>{typeof f === 'string' ? f : f.food || f.reason || JSON.stringify(f)}</li>
                     ))}
                   </ul>
                 </CardContent>
@@ -135,8 +135,8 @@ export default function DiseaseDiet() {
                 <CardHeader className="pb-3"><CardTitle className="text-base text-red-700 flex items-center gap-2"><AlertCircle className="w-4 h-4" />Foods to Avoid</CardTitle></CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {plan.foods_to_avoid?.map((f, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm"><span className="text-red-400 mt-0.5">✗</span>{f}</li>
+                    {plan.foods_to_avoid?.map((f: any, i: number) => (
+                      <li key={i} className="flex items-start gap-2 text-sm"><span className="text-red-400 mt-0.5">✗</span>{typeof f === 'string' ? f : f.food || f.reason || JSON.stringify(f)}</li>
                     ))}
                   </ul>
                 </CardContent>
@@ -147,7 +147,7 @@ export default function DiseaseDiet() {
                 <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><Heart className="w-4 h-4 text-primary" />Key Nutrients to Focus On</CardTitle></CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
-                    {plan.key_nutrients?.map((n, i) => <Badge key={i} variant="secondary" className="text-sm px-3 py-1">{n}</Badge>)}
+                    {plan.key_nutrients?.map((n: any, i: number) => <Badge key={i} variant="secondary" className="text-sm px-3 py-1">{typeof n === 'string' ? n : n.nutrient || JSON.stringify(n)}</Badge>)}
                   </div>
                 </CardContent>
               </Card>
@@ -157,8 +157,8 @@ export default function DiseaseDiet() {
                 <CardHeader className="pb-3"><CardTitle className="text-base">Meal Timing Guidelines</CardTitle></CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {plan.meal_timing?.map((t, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm"><ChevronRight className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />{t}</li>
+                    {plan.meal_timing?.map((t: any, i: number) => (
+                      <li key={i} className="flex items-start gap-2 text-sm"><ChevronRight className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />{typeof t === 'string' ? t : t.tip || t.meal || JSON.stringify(t)}</li>
                     ))}
                   </ul>
                 </CardContent>
@@ -172,10 +172,10 @@ export default function DiseaseDiet() {
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {[
-                      { label: "☀️ Breakfast", content: plan.sample_day.breakfast },
-                      { label: "🌤️ Lunch", content: plan.sample_day.lunch },
-                      { label: "🌙 Dinner", content: plan.sample_day.dinner },
-                      { label: "🍎 Snacks", content: plan.sample_day.snacks?.join(", ") },
+                      { label: "☀️ Breakfast", content: typeof plan.sample_day.breakfast === 'string' ? plan.sample_day.breakfast : JSON.stringify(plan.sample_day.breakfast) },
+                      { label: "🌤️ Lunch", content: typeof plan.sample_day.lunch === 'string' ? plan.sample_day.lunch : JSON.stringify(plan.sample_day.lunch) },
+                      { label: "🌙 Dinner", content: typeof plan.sample_day.dinner === 'string' ? plan.sample_day.dinner : JSON.stringify(plan.sample_day.dinner) },
+                      { label: "🍎 Snacks", content: Array.isArray(plan.sample_day.snacks) ? plan.sample_day.snacks.map((s: any) => typeof s === 'string' ? s : s.name || s.snack || JSON.stringify(s)).join(", ") : JSON.stringify(plan.sample_day.snacks) },
                     ].map(meal => (
                       <div key={meal.label} className="p-4 rounded-xl bg-secondary/50">
                         <p className="font-semibold text-sm mb-1">{meal.label}</p>
@@ -193,7 +193,7 @@ export default function DiseaseDiet() {
                 <CardContent className="p-5">
                   <p className="font-semibold mb-3 flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary" />AI Tips for Your Conditions</p>
                   <ul className="space-y-2">
-                    {plan.tips.map((t, i) => <li key={i} className="text-sm flex gap-2"><span className="text-primary">•</span>{t}</li>)}
+                    {plan.tips.map((t: any, i: number) => <li key={i} className="text-sm flex gap-2"><span className="text-primary">•</span>{typeof t === 'string' ? t : t.tip || t.meal || JSON.stringify(t)}</li>)}
                   </ul>
                 </CardContent>
               </Card>

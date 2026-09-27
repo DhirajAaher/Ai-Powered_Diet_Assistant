@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
-import { useGetProfile, useListDietPlans, useGenerateDietPlan, useGetDietPlan } from "@workspace/api-client-react";
+import { useGetProfile, useListDietPlans, useGenerateDietPlan, useGetDietPlan, useDeleteDietPlan } from "@workspace/api-client-react";
 import { getAuthHeaders } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarRange, Sparkles, Check, ChevronRight, FileText } from "lucide-react";
+import { CalendarRange, Sparkles, Check, ChevronRight, FileText, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, parseISO } from "date-fns";
 import { Link } from "wouter";
@@ -19,17 +22,36 @@ export default function DietPlan() {
 
   const [activePlanId, setActivePlanId] = useState<number | null>(null);
   const [selectedDay, setSelectedDay] = useState<string>("Monday");
+  const [dietType, setDietType] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const deletePlan = useDeleteDietPlan(headers);
+
+  const handleDelete = (e: React.MouseEvent, id: number) => {
+    e.stopPropagation();
+    if (confirm("Are you sure you want to delete this diet plan?")) {
+      deletePlan.mutate({ id }, {
+        onSuccess: () => {
+          toast({ title: "Deleted", description: "Diet plan has been deleted." });
+          if (activePlanId === id) setActivePlanId(null);
+          refetch();
+        }
+      });
+    }
+  };
 
   const handleGenerate = () => {
     if (!profile?.id) {
       toast({ title: "Profile incomplete", description: "Please complete your profile first." });
       return;
     }
-    generatePlan.mutate({ data: { profileId: profile.id } }, {
+    setIsDialogOpen(false);
+    generatePlan.mutate({ data: { profileId: profile.id, dietType: dietType || undefined } }, {
       onSuccess: (data) => {
         toast({ title: "Success!", description: "New 7-day AI plan generated." });
         refetch();
         setActivePlanId(data.id);
+        setDietType("");
       }
     });
   };
@@ -62,15 +84,47 @@ export default function DietPlan() {
           <h1 className="text-3xl font-display font-bold">Your Diet Plans</h1>
           <p className="text-muted-foreground mt-1">Personalized weekly meals designed by AI.</p>
         </div>
-        <Button 
-          onClick={handleGenerate} 
-          disabled={generatePlan.isPending}
-          size="lg"
-          className="shadow-xl shadow-primary/20 bg-gradient-to-r from-primary to-accent border-0"
-        >
-          <Sparkles className="w-4 h-4 mr-2" />
-          {generatePlan.isPending ? "Generating..." : "Generate New Plan"}
-        </Button>
+        
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button 
+              disabled={generatePlan.isPending}
+              size="lg"
+              className="shadow-xl shadow-primary/20 bg-gradient-to-r from-primary to-accent border-0"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              {generatePlan.isPending ? "Generating..." : "Generate New Plan"}
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Generate New Diet Plan</DialogTitle>
+              <DialogDescription>
+                Want a specific regional cuisine or custom diet? Let the AI know!
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="dietType">Custom Diet Type (Optional)</Label>
+                <Input 
+                  id="dietType" 
+                  placeholder="e.g. Maharashtrian, Gujarati, Mediterranean..." 
+                  value={dietType}
+                  onChange={(e) => setDietType(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">Leave blank to use your profile preferences.</p>
+              </div>
+              <Button 
+                onClick={handleGenerate} 
+                disabled={generatePlan.isPending}
+                className="w-full"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                {generatePlan.isPending ? "Generating..." : "Generate Plan"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {!loadingPlans && plans?.length === 0 && !generatePlan.isPending && (
@@ -78,7 +132,7 @@ export default function DietPlan() {
           <CalendarRange className="w-16 h-16 mx-auto text-muted-foreground/50 mb-4" />
           <h2 className="text-xl font-semibold mb-2">No Plans Yet</h2>
           <p className="text-muted-foreground mb-6">Generate your first AI-powered weekly meal plan based on your profile goals.</p>
-          <Button onClick={handleGenerate} variant="outline">Generate First Plan</Button>
+          <Button onClick={() => setIsDialogOpen(true)} variant="outline">Generate First Plan</Button>
         </Card>
       )}
 
@@ -92,21 +146,38 @@ export default function DietPlan() {
             <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground px-2">History</h3>
             <div className="space-y-2">
               {plans?.map(plan => (
-                <button
+                <div
                   key={plan.id}
                   onClick={() => setActivePlanId(plan.id)}
-                  className={`w-full text-left p-4 rounded-xl transition-all border ${
-                    (activePlanId ? plan.id === activePlanId : plan.id === activePlan.id)
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setActivePlanId(plan.id);
+                    }
+                  }}
+                  className={`w-full text-left p-4 rounded-xl transition-all border group relative cursor-pointer ${
+                    (activePlanId ? plan.id === activePlanId : plan.id === activePlan?.id)
                       ? 'border-primary bg-primary/5 shadow-sm'
                       : 'border-transparent bg-card hover:border-border hover:bg-secondary/50'
                   }`}
                 >
-                  <div className="font-semibold text-sm truncate">{plan.title}</div>
-                  <div className="text-xs text-muted-foreground mt-1 flex justify-between">
+                  <div className="font-semibold text-sm truncate pr-8">{plan.title}</div>
+                  <div className="text-xs text-muted-foreground mt-1 flex justify-between items-center">
                     <span>{format(parseISO(plan.createdAt), 'MMM dd, yyyy')}</span>
                     <span className="text-primary font-medium">{plan.dailyCalories} kcal</span>
                   </div>
-                </button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    onClick={(e) => handleDelete(e, plan.id)}
+                    disabled={deletePlan.isPending}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               ))}
             </div>
           </div>

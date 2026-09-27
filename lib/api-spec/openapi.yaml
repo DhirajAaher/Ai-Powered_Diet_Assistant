@@ -216,6 +216,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteDietPlan
+      tags: [diet]
+      summary: Delete a specific diet plan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Plan deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /diet/check-food:
     post:
@@ -628,6 +647,9 @@ components:
       properties:
         profileId:
           type: integer
+        dietType:
+          type: string
+          description: Optional regional or custom diet type (e.g. Maharashtrian, Gujarati)
       required:
         - profileId
 

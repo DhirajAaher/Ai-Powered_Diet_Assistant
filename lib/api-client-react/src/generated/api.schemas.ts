@@ -165,6 +165,8 @@ export interface UserProfileBody {
 
 export interface GeneratePlanBody {
   profileId: number;
+  /** Optional regional or custom diet type (e.g. Maharashtrian, Gujarati) */
+  dietType?: string;
 }
 
 export interface DietPlan {
