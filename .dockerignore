@@ -1,0 +1,17 @@
+node_modules
+.git
+*.log
+npm-debug.log*
+dist
+.cache
+.local
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+.DS_Store
+Thumbs.db
+overall-project-summary.pdf
+nutiai_project_report.tex
+scripts/generate_project_summary_pdf.py
+NutiAI_Project_Specifications.md
